@@ -1,0 +1,18 @@
+﻿Organism,Process,Condition,Sampling Frequency,Sampling Duration,Dataset,Type,PMID
+Saccharomyces cerevisiae,Cell Cycle,Wild-type replicate 1,16 min,254 min,Scerevisiae_WT1_Microarray,Microarray,18463633
+Saccharomyces cerevisiae,Cell Cycle,Wild-type replicate 2,16 min,262 min,Scerevisiae_WT2_Microarray,Microarray,18463633
+Saccharomyces cerevisiae,Cell Cycle,Wild-type,5 min,245 min,Scerevisiae_RNAseq,RNAseq,27918582
+Cryptococcus neoformans,Cell Cycle,Wild-type,10 min,230 min,Cneoformans_RNAseq,RNAseq,27918582
+Homo Sapiens,Cell Cycle,K562 Wild-type,2 hr,48 hr,Hsapiens_K562,RNAseq,NA
+Homo Sapiens,Cell Cycle,HeLA Wild-type,1 hr,47 hr,Hsapiens_HeLa,Microarray,12058064
+Ophiocordyceps kimflemingiae,Circadian,light-dark,4 hr,48 hr,Okimflemingiae_DD_RPKM,RNAseq,29099875
+Ophiocordyceps kimflemingiae,Circadian,dark-dark,4 hr,48 hr,Okimflemingiae_LD_RPKM,RNAseq,29099875
+Phaeodactylum tricornutum,Circadian,light-dark,Uneven,27 hr,Ptricornutum_LD,Microarray,23209127
+Mus musculus,Circadian,dark-dark Liver ,2 hr,48 hr,Mmusculus_liver_DDHC,RNAseq,25349387
+Arabidopsis thaliana,Circadian,light-dark,4 hr,48 hr,Athaliana_LD,Microarray,18248097
+Arabidopsis thaliana,Circadian,light-light,4 hr,48 hr,Athaliana_LL,Microarray,18248097
+Kalanchoe fedtschenkoi,Circadian,light-dark,2 hr,48 hr,Kfedtschenkoi_LD,RNAseq,29196618
+Kalanchoe fedtschenkoi,Circadian,light-light,2 hr,48 hr,Kfedtschenkoi_LL,RNAseq,29196618
+Plasmodium falciparum,Intraerythrocytic Development Cycle,in vitro 3D7,3 hr,60 hr,Pfalciparum_3D7,RNAseq,32409472
+Plasmodium vivax,Intraerythrocytic Development Cycle,ex vivo Participant 08,3 hr,48 hr,Pvivax_08,RNAseq,NA
+Plasmodium vivax,Intraerythrocytic Development Cycle,ex vivo Participant 09,3 hr,48 hr,Pvivax_09,RNAseq,NA
