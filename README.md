@@ -2,6 +2,9 @@
 
 
 
+### Below is a table of the datasets available within this repository. The last column, titled PMID, contains the pubmed ID for the article the dataset is associated with. Clicking the ID will link you to the article on Pubmed.
+<br>
+
 <table>
     <thead>
       <tr>
