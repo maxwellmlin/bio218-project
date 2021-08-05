@@ -2,6 +2,38 @@
 
 This repository contains material for the Duke University class Biological Clocks.
 
+Requirements
+------------
+* You will need [Conda](https://conda.io/projects/conda/en/latest/index.html) installed. Conda is a package and environment manager and is included in all versions of [Anaconda](https://www.anaconda.com/products/individual) and [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
+
+* MPI
+    If you do not have `MPI` installed:
+    ```
+    For MacOS
+    $ brew install openmpi
+    $ mpiexec --version
+    
+    For Ubuntu
+    $ sudo apt-get install openmpi-bin
+    $ mpiexec --version
+    ```
+
+Installation
+------------
+Clone the repository onto your machine
+```
+$ git clone git@gitlab.com:haaselab/biological_clocks_class.git
+```
+Change into the `biological_clocks_class` directory, create a conda environment and install packages
+```
+$ cd biological_clocks_class
+$ conda env create -f conda_req.yml
+$ ipython kernel install --user --name=BioClocksClass
+$ python install.py
+```
+Datasets
+------------
+
 Below is a table describing the datasets available within this repository. The last column, titled PMID, contains the pubmed ID for the article the dataset is associated with. Clicking the ID will link you to the article on Pubmed.
 <br>
 
