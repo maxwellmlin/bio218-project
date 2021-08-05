@@ -229,7 +229,7 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
         print('Relabeling duplicates.')
         df = relabel_duplicates(df)
     
-    tmp_file = f'../tmp_data/{dataset}_tmp.tsv'
+    tmp_file = f'../tmp/{dataset}_tmp.tsv'
     
     df.to_csv(tmp_file, sep='\t')
     
