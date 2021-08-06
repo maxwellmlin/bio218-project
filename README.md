@@ -4,10 +4,11 @@ This repository contains material for the Duke University class Biological Clock
 
 Requirements
 ------------
-* You will need [Conda](https://conda.io/projects/conda/en/latest/index.html) installed. Conda is a package and environment manager and is included in all versions of [Anaconda](https://www.anaconda.com/products/individual) and [Miniconda](https://docs.conda.io/en/latest/miniconda.html).
+### Conda
+* You will need [Conda](https://conda.io/projects/conda/en/latest/index.html) installed. Conda is a package and environment manager and is included in all versions of [Anaconda](https://www.anaconda.com/products/individual) and [Miniconda](https://docs.conda.io/en/latest/miniconda.html). Installation instructions can be found [here](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
-* MPI
-    If you do not have `MPI` installed:
+### MPI
+* If you do not have `MPI` installed:
     ```
     For MacOS
     $ brew install openmpi
@@ -18,19 +19,31 @@ Requirements
     $ mpiexec --version
     ```
 
+### Git
+* [Git](https://www.atlassian.com/git/tutorials/what-is-git) is a version control system and can be installed via conda. In your terminal, enter the command:
+
+  ```
+  $ conda install git
+  ```
+### Gitlab ([www.gitlab.com](https://www.gitlab.com))
+* You will also need to create a Gitlab account, which you can do [here](https://gitlab.com/users/sign_up). 
+* You will likely need to create Personal Access Token (PAT) for use during the Installation step. Steps for creating a PAT can be found [here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) 
+
+
 Installation
 ------------
-Clone the repository onto your machine
-```
-$ git clone git@gitlab.com:haaselab/biological_clocks_class.git
-```
-Change into the `biological_clocks_class` directory, create a conda environment and install packages
-```
-$ cd biological_clocks_class
-$ conda env create -f conda_req.yml
-$ ipython kernel install --user --name=BioClocksClass
-$ python install.py
-```
+
+* Clone the repository onto your machine by entering this command in your terminal:
+  ```
+  $ git clone https://gitlab.com/haaselab/biological_clocks_class.git
+  ```
+* You will be prompted to enter your Gitlab username and password. Enter your username but for the password use your PAT.
+* Change into the `biological_clocks_class` directory, create a conda environment and install packages:
+  ```
+  $ cd biological_clocks_class
+  $ conda env create -f conda_req.yml
+  $ ipython kernel install --user --name=BioClocksClass
+  ```
 Datasets
 ------------
 

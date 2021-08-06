@@ -19,4 +19,6 @@ dependencies:
   - nb_conda_kernels
   - ipykernel
   - nodejs
-  # - pip:
+  - pip:
+      - -e src/pydl
+      - -e src/pyjtk
