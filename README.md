@@ -27,7 +27,7 @@ Requirements
   ```
 ### Gitlab ([www.gitlab.com](https://www.gitlab.com))
 * You will also need to create a Gitlab account, which you can do [here](https://gitlab.com/users/sign_up). 
-* You will likely need to create a Personal Access Token (PAT) for use during the Installation step. Steps for creating a PAT can be found [here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) 
+* You will likely need to create a Personal Access Token (PAT) for use during the Installation step. Steps for creating a PAT can be found [here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html). 
 
 
 Installation
