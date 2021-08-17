@@ -1,0 +1,9 @@
+[submodule "src/lempy"]
+	path = src/lempy
+	url = https://gitlab.com/biochron/lempy.git
+[submodule "src/pyjtk"]
+	path = src/pyjtk
+	url = https://gitlab.com/biochron/pyjtk.git
+[submodule "src/pydl"]
+	path = src/pydl
+	url = https://gitlab.com/biochron/pydl.git
