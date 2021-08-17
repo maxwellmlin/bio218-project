@@ -33,7 +33,7 @@ Requirements
 Installation
 ------------
 
-* Clone the repository onto your machine by entering this command in your terminal:
+* Clone the repository onto your machine by entering the following command in your terminal. Note that if you have a Windows machine, this command should be run in a cmd (Command Prompt) terminal instead of the Conda terminal. To open cmd, see [here](https://www.howtogeek.com/235101/10-ways-to-open-the-command-prompt-in-windows-10/#:~:text=Press%20Windows%2BR%20to%20open,open%20an%20administrator%20Command%20Prompt).
   ```
   $ git clone https://gitlab.com/haaselab/biological_clocks_class.git
   ```
