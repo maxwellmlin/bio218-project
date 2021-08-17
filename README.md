@@ -38,7 +38,7 @@ Installation
   $ git clone https://gitlab.com/haaselab/biological_clocks_class.git
   ```
 * You will be prompted to enter your Gitlab username and password. Enter your username but for the password use your PAT.
-* Change into the `biological_clocks_class` directory, create a conda environment and install packages:
+* Change into the `biological_clocks_class` directory, create a conda environment and install packages. To learn more about the command line and commands such as "cd" (change directory) below, see this [crash course](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Understanding_client-side_tools/Command_line). 
   ```
   $ cd biological_clocks_class
   $ conda env create -f conda_req.yml
