@@ -129,7 +129,7 @@ def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, 
     outdir = f'../results/{outfile}'
     
     system = platform.system()
-    if system == 'Windows' and windows_issues == True:
+    if system == 'Windows' and windows_issues:
         print('** IMPORTANT: System was detected as Windows. ** There is currently an issue running pyDL on Windows through the Jupyter notebook. Two commands will be printed below. Go into the terminal and change into the biological_clocks_class folder as described in the README.Then copy and paste the following commands. ')
         print(f' -- Printing command for pyDL on dataset {dataset}, testing period of {period}:')
         pydl_path_windows = pydl_path.replace("../", "")
@@ -152,7 +152,6 @@ def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, 
         submit_cmd = subprocess.Popen(full_cmd, 
                                       stdout=subprocess.PIPE, 
                                       stderr=subprocess.PIPE)
-        print("submitted")
 
 
 
@@ -268,10 +267,10 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     pyjtk_results_path = run_pyjtk(tmp_file, pyjtk_periods, is_tmp=True)
     
     print('Running pyDL')
-    pydl_results_path = run_pydl(tmp_file, pydl_periods, is_tmp=True)
+    pydl_results_path = run_pydl(tmp_file, pydl_periods, is_tmp=True, windows_issues=windows_issues)
     
     system = platform.system()
-    if system == 'Windows' and windows_issues == True:
+    if system == 'Windows' and windows_issues:
         pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
         pydl_results = pydl_results_path
         print('After pyDL has completed in the terminal, please run the following line in the next cell in the Jupyter notebook. You can also delete the temp file that was created in the tmp folder.')
@@ -300,7 +299,7 @@ def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhol
     print('Loading periodicity results')
     periodicity_df = load_results(periodicity_result)
     
-    if threshhold_below == True:
+    if threshhold_below:
         gene_list = list(periodicity_df.loc[periodicity_df[filtering_column]<threshhold].index)
     else:
         gene_list= list(periodicity_df.loc[periodicity_df[filtering_column]>threshhold].index)
@@ -317,7 +316,7 @@ def get_closest_column_from_period(dataset_df, period):
     return closest_column_int
 
 
-def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes = 1000, threshhold = None, threshhold_below = True):
+def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes = 1000, threshhold = None, threshhold_below = True, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
     '''
     ****** ADD DUPS OPTIONAL
     
@@ -336,7 +335,16 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     
     print('Loading data.')
     df = load_dataset(dataset)
+    
+    if handle_duplicates:
+        if drop_duplicates:
+            print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+            df = remove_duplicates(df, drop_method)
+        else:
+            print('Relabeling duplicates.')
+            df = relabel_duplicates(df)
 
+    
         
     if top_genes is not None and threshhold is None:
         gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
