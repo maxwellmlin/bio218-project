@@ -129,7 +129,7 @@ def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, 
     outdir = f'../results/{outfile}'
     
     system = platform.system()
-    if system == 'Windows' and windows_issues = True:
+    if system == 'Windows' and windows_issues == True:
         print('** IMPORTANT: System was detected as Windows. ** There is currently an issue running pyDL on Windows through the Jupyter notebook. Two commands will be printed below. Go into the terminal and change into the biological_clocks_class folder as described in the README.Then copy and paste the following commands. ')
         print(f' -- Printing command for pyDL on dataset {dataset}, testing period of {period}:')
         pydl_path_windows = pydl_path.replace("../", "")
@@ -239,7 +239,7 @@ def relabel_duplicates(dataset):
     return df
 
 
-def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False, drop_method='max'):
+def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False, drop_method='max', windows_issues = False):
     '''
     Run pyJTK and pyDL on a single dataset.
     pyjtk_periods is a list of periods to use in pyJTK
@@ -271,7 +271,7 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     pydl_results_path = run_pydl(tmp_file, pydl_periods, is_tmp=True)
     
     system = platform.system()
-    if system == 'Windows':
+    if system == 'Windows' and windows_issues == True:
         pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
         pydl_results = pydl_results_path
         print('After pyDL has completed in the terminal, please run the following line in the next cell in the Jupyter notebook. You can also delete the temp file that was created in the tmp folder.')
