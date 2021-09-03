@@ -424,7 +424,54 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
 
     s = sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar= True)
 
-# def plot_linegraphs(dataset, gene_list):
+def plot_linegraphs_from_gene_list(dataset, gene_list):
+    print('Loading data.')
+    df = load_dataset(dataset)
     
+    if len(gene_list) <=5 and len(gene_list)>0:
+        num_rows = 1
+        num_columns = len(gene_list)
+        length_size = 3
+        width_size = len(gene_list)*4
+        
+    elif len(gene_list) > 5 and len(gene_list)<=10:
+        num_rows = 2
+        num_columns = 5
+        length_size = 6
+        width_size = 20
+    else:
+        print("Gene-list must be between 1 and 10 genes in length")
+        
+    
+    fig = plt.figure(figsize = (width_size,length_size))
+    
+    if len(gene_list) <=5 and len(gene_list)>0:
+        top_size = .8
+    elif len(gene_list) > 5 and len(gene_list)<=10:
+        top_size = 0.9
+    
+    fig.subplots_adjust(hspace=0.3, wspace=0.3, top = top_size)
+    plt.suptitle(dataset, fontsize=15, y = 0.99)    
+
+    for i in range(0,len(gene_list)):
+        plt.subplot(num_rows, num_columns, i+1)
+        sns.lineplot(x = df.columns, y = df.iloc[i]).set_title(df.index[i])
+    
+    
+    
+def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering_column, top_gene_number):
+    print(top_gene_number)
+    
+    if top_gene_number not in list(range(1,11)):
+        print("top_gene_number must be between 1 and 10")
+    else:
+        print('Loading data.')
+        df = load_dataset(dataset)
+        
+        print('Loading periodicity results')
+        periodicity_df = load_results(periodicity_result)
+        
+        gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene_number)
+        plot_linegraphs_from_gene_list(dataset, gene_list)
     
     
