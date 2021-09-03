@@ -312,7 +312,7 @@ def closest_column(list_columns, n):
 def get_closest_column_from_period(dataset_df, period):
     columns_in_df = list(dataset_df.columns)
     timepoints_numeric = [int(i) for i in columns_in_df]
-    closest_column_int = closest_column(timepoints_numeric, 96)
+    closest_column_int = closest_column(timepoints_numeric, period)
     return closest_column_int
 
 
@@ -345,7 +345,6 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
             df = relabel_duplicates(df)
 
     
-        
     if top_genes is not None and threshhold is None:
         gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
     elif top_genes is not None and threshhold is not None:
@@ -356,7 +355,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
             gene_list = get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below)
         else:
             print('Either top_genes or threshhold must be not None.')
-    
+    df = df.reindex(gene_list)
     data = df.loc[gene_list]
     if len(gene_list)>100:
         yticks = False
@@ -366,8 +365,11 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     z_pyjtk = scipy.stats.zscore(data, axis=1)
     z_pyjtk_df = pd.DataFrame(z_pyjtk, index=data.index, columns=data.columns)
     
+
+    list_columns = list(data.columns)
     first_period = get_closest_column_from_period(data, period)
     first_period_index = data.columns.get_loc(str(first_period))
+    
     z_pyjtk_1stperiod = z_pyjtk_df.iloc[:, 0:first_period_index]
     max_time = z_pyjtk_1stperiod.idxmax(axis=1)
     z_pyjtk_df["max"] = max_time
