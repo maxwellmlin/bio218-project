@@ -315,6 +315,11 @@ def get_closest_column_from_period(dataset_df, period):
     closest_column_int = closest_column(timepoints_numeric, period)
     return closest_column_int
 
+norm = matplotlib.colors.Normalize(-1.5,1.5)
+colors = [[norm(-1.5), "cyan"],
+      [norm(0), "black"],
+     [norm(1.5), "yellow"]]
+haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
 
 def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes = 1000, threshhold = None, threshhold_below = True, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
     '''
@@ -327,11 +332,6 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     drop_method specifies the method to use for determining which duplicates to drop.
     
     '''
-    norm = matplotlib.colors.Normalize(-1.5,1.5)
-    colors = [[norm(-1.5), "cyan"],
-          [norm(0), "black"],
-         [norm(1.5), "yellow"]]
-    haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
     
     print('Loading data.')
     df = load_dataset(dataset)
@@ -392,11 +392,39 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
         
     
         
-def plot_heatmap_in_supplied_order(dataset, order):
-    '''
-    '''
+def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
+
     print('Loading data.')
     df = load_dataset(dataset)
+
+    if handle_duplicates:
+        if drop_duplicates:
+            print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+            df = remove_duplicates(df, drop_method)
+        else:
+            print('Relabeling duplicates.')
+            df = relabel_duplicates(df)
+            
+    if len(order)>100:
+        yticks = False
+    else:
+        yticks = True
+    df = df.reindex(order)
+    data = df.loc[order]
+    z_pyjtk = scipy.stats.zscore(data, axis=1)
+    z_pyjtk_df = pd.DataFrame(z_pyjtk, index=data.index, columns=data.columns)
+    fig = plt.figure(figsize = (8,8))
+
+    subtitle = "Ordered by supplied genelist"
+
+    title = dataset
+    plt.title(subtitle, fontsize = 13, y = .995)
+    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
+    fig.subplots_adjust(top = 0.90)
+
+    s = sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar= True)
+
+# def plot_linegraphs(dataset, gene_list):
     
     
     
