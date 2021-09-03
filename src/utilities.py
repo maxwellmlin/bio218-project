@@ -5,6 +5,13 @@ import datetime
 import subprocess
 import pandas as pd
 
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy
+import seaborn as sns
+import matplotlib
+import platform
+
 DATADIR = '../datasets'
 
 
@@ -25,6 +32,15 @@ def load_dataset(dataset_name):
     return pd.read_csv(f'{DATADIR}/{dataset_name}', index_col=0, sep='\t', comment='#')
 
 
+def load_results(periodicity_results_name):
+    '''
+    Load periodicity results into a dataframe
+    
+    periodicity_results_name: the file name of the periodicity results file. Will be stored as the output of running the periodicity functions.
+    '''
+    if '.tsv' not in periodicity_results_name:
+        periodicity_results_name = periodicity_results_name + '.tsv'
+    return pd.read_csv(f'{DATADIR}/{periodicity_results_name}', index_col=0, sep='\t', comment='#')
 
 def convert_periods_to_str(periods):
     '''
@@ -87,7 +103,7 @@ def run_pyjtk(dataset, periods, is_tmp=False):
     return outdir
 
 
-def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, verbose=False, is_tmp=False):
+def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
     '''
     Use pyDL to analyze a time series dataset.
     Period is single period to use in pyDL.
@@ -112,28 +128,43 @@ def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, 
     outfile = f'{dataset}_pydl_{datetimestr}.tsv'
     outdir = f'../results/{outfile}'
     
-    print(f'-- Running pyDL on dataset {dataset}, testing a period of {period}')
-    
-    full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir, 
-                '-r', str(numb_reg), 
-                '-p', str(numb_per), 
-                '-l', str(log_trans), 
-                '-v', str(verbose)]    
-    
-    submit_cmd = subprocess.Popen(full_cmd, 
-                                  stdout=subprocess.PIPE, 
-                                  stderr=subprocess.PIPE)
-    
-    print(f'-- Command used: {" ".join(full_cmd)}')
-    
-    output, error = submit_cmd.communicate()
-    str_error = error.decode("utf-8").split('\n')
-    str_output = output.decode("utf-8").split('\n')
-    if len(str_error) > 1:
-        print(f'-- Error:')
-        [print(e) for e in str_error]
+    system = platform.system()
+    if system == 'Windows' and windows_issues = True:
+        print('** IMPORTANT: System was detected as Windows. ** There is currently an issue running pyDL on Windows through the Jupyter notebook. Two commands will be printed below. Go into the terminal and change into the biological_clocks_class folder as described in the README.Then copy and paste the following commands. ')
+        print(f' -- Printing command for pyDL on dataset {dataset}, testing period of {period}:')
+        pydl_path_windows = pydl_path.replace("../", "")
+        data_path_windows = data_path.replace("../", "")
+        outdir_windows = outdir.replace("../", "")
+        command0 ='Command 1: conda activate BioClocksClass'
+        command = f'Command 2: mpiexec -n 2 python {pydl_path_windows} {data_path_windows} -T {period} -o {outdir_windows} -r {numb_reg} -p {numb_per} -l {log_trans} -v {verbose}'
+        print (command0)
+        print(command)
+    else:
+        print(f'-- Running pyDL on dataset {dataset}, testing a period of {period}')
 
-    print(f'-- Results saved as {outfile} in the results directory')
+        full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir, 
+                    '-r', str(numb_reg), 
+                    '-p', str(numb_per), 
+                    '-l', str(log_trans), 
+                    '-v', str(verbose)]    
+        print(f'-- Command used: {" ".join(full_cmd)}')
+
+        submit_cmd = subprocess.Popen(full_cmd, 
+                                      stdout=subprocess.PIPE, 
+                                      stderr=subprocess.PIPE)
+        print("submitted")
+
+
+
+        output, error = submit_cmd.communicate()
+        str_error = error.decode("utf-8").split('\n')
+        str_output = output.decode("utf-8").split('\n')
+        print(str_output)
+        if len(str_error) > 1:
+            print(f'-- Error:')
+            [print(e) for e in str_error]
+
+        print(f'-- Results saved as {outfile} in the results directory')
     
     return outdir
 
@@ -239,9 +270,123 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     print('Running pyDL')
     pydl_results_path = run_pydl(tmp_file, pydl_periods, is_tmp=True)
     
-    pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
-    pydl_results = pd.read_csv(pydl_results_path, sep='\t', index_col=0, comment='#')
-    
-    os.remove(tmp_file)
+    system = platform.system()
+    if system == 'Windows':
+        pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
+        pydl_results = pydl_results_path
+        print('After pyDL has completed in the terminal, please run the following line in the next cell in the Jupyter notebook. You can also delete the temp file that was created in the tmp folder.')
+        command = 'pydl_results = load_results(pydl_results)'
+        print(f"Code for jupyter cell: {command}")
+    else:
+        pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
+        pydl_results = pd.read_csv(pydl_results_path, sep='\t', index_col=0, comment='#')
+        os.remove(tmp_file)
     
     return pjyk_results, pydl_results
+
+def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes):
+    print('Loading periodicity results')
+    periodicity_df = load_results(periodicity_result)
+    
+    if filtering_column in periodicity_df.columns:
+        periodicity_df=periodicity_df.sort_values(by=filtering_column)
+        gene_list = list(periodicity_df.iloc[0:top_genes].index)
+        return gene_list
+    else:
+        print('filtering column must be a numeric column in the periodicity result dataframe.')
+        return None
+    
+def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below):
+    print('Loading periodicity results')
+    periodicity_df = load_results(periodicity_result)
+    
+    if threshhold_below == True:
+        gene_list = list(periodicity_df.loc[periodicity_df[filtering_column]<threshhold].index)
+    else:
+        gene_list= list(periodicity_df.loc[periodicity_df[filtering_column]>threshhold].index)
+    return gene_list
+
+def closest_column(list_columns, n):
+      
+    return list_columns[min(range(len(list_columns)), key = lambda i: abs(list_columns[i]-n))]
+
+def get_closest_column_from_period(dataset_df, period):
+    columns_in_df = list(dataset_df.columns)
+    timepoints_numeric = [int(i) for i in columns_in_df]
+    closest_column_int = closest_column(timepoints_numeric, 96)
+    return closest_column_int
+
+
+def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes = 1000, threshhold = None, threshhold_below = True):
+    '''
+    ****** ADD DUPS OPTIONAL
+    
+    Plot genes from a single dataset in a heatmap.
+    Threshhold 
+    
+    drop_duplicates, when True, will drop duplicates in the dataset based on drop_method. When False, duplicates are relabeled to prevent pyDL from failing.
+    drop_method specifies the method to use for determining which duplicates to drop.
+    
+    '''
+    norm = matplotlib.colors.Normalize(-1.5,1.5)
+    colors = [[norm(-1.5), "cyan"],
+          [norm(0), "black"],
+         [norm(1.5), "yellow"]]
+    haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
+    
+    print('Loading data.')
+    df = load_dataset(dataset)
+
+        
+    if top_genes is not None and threshhold is None:
+        gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
+    elif top_genes is not None and threshhold is not None:
+        gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
+        print('Note: both threshhold and top genes were supplied with a value. Using top genes. To use threshhold, please set top genes to None.')
+    else:
+        if threshhold is not None:
+            gene_list = get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below)
+        else:
+            print('Either top_genes or threshhold must be not None.')
+    
+    data = df.loc[gene_list]
+    if len(gene_list)>100:
+        yticks = False
+    else:
+        yticks = True
+    
+    z_pyjtk = scipy.stats.zscore(data, axis=1)
+    z_pyjtk_df = pd.DataFrame(z_pyjtk, index=data.index, columns=data.columns)
+    
+    first_period = get_closest_column_from_period(data, period)
+    first_period_index = data.columns.get_loc(str(first_period))
+    z_pyjtk_1stperiod = z_pyjtk_df.iloc[:, 0:first_period_index]
+    max_time = z_pyjtk_1stperiod.idxmax(axis=1)
+    z_pyjtk_df["max"] = max_time
+    z_pyjtk_df["max"] = pd.to_numeric(z_pyjtk_df["max"])
+    z_pyjtk_df = z_pyjtk_df.sort_values(by="max", axis=0)
+    z_pyjtk_df = z_pyjtk_df.drop(columns=['max'])
+    order = z_pyjtk_df.index
+    fig = plt.figure(figsize = (8,8))
+    
+    if top_genes is not None:
+        subtitle = "Filtered by " + filtering_column +": top " + str(top_genes) +" genes\n"
+    elif threshhold is not None:
+        subtitle = dataset + "Filtered by " + filtering_column +" with threshold = "+ str(threshhold) +"\n"
+    title = dataset
+    plt.title(subtitle, fontsize = 13, y = .96)
+    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
+    fig.subplots_adjust(top = 0.90)
+
+    s = sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar = True)
+        
+    
+        
+def plot_heatmap_in_supplied_order(dataset, order):
+    '''
+    '''
+    print('Loading data.')
+    df = load_dataset(dataset)
+    
+    
+    
