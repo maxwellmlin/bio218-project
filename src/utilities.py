@@ -357,7 +357,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
             print('Either top_genes or threshhold must be not None.')
     df = df.reindex(gene_list)
     data = df.loc[gene_list]
-    if len(gene_list)>100:
+    if len(gene_list)>75:
         yticks = False
     else:
         yticks = True
