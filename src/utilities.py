@@ -284,9 +284,11 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     return pjyk_results, pydl_results
 
 def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes):
-    print('Loading periodicity results')
-    periodicity_df = load_results(periodicity_result)
-    
+    if type(periodicity_result) == str:
+        print('Loading periodicity results')
+        periodicity_df = load_results(periodicity_result)
+    elif type(periodicity_result)==pd.core.frame.DataFrame:
+        periodicity_df = periodicity_result
     if filtering_column in periodicity_df.columns:
         periodicity_df=periodicity_df.sort_values(by=filtering_column)
         gene_list = list(periodicity_df.iloc[0:top_genes].index)
@@ -296,8 +298,11 @@ def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene
         return None
     
 def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below):
-    print('Loading periodicity results')
-    periodicity_df = load_results(periodicity_result)
+    if type(periodicity_result) == str:
+        print('Loading periodicity results')
+        periodicity_df = load_results(periodicity_result)
+    elif type(periodicity_result)==pd.core.frame.DataFrame:
+        periodicity_df = periodicity_result
     
     if threshhold_below:
         gene_list = list(periodicity_df.loc[periodicity_df[filtering_column]<threshhold].index)
@@ -468,10 +473,13 @@ def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering
         print('Loading data.')
         df = load_dataset(dataset)
         
-        print('Loading periodicity results')
-        periodicity_df = load_results(periodicity_result)
+        if type(periodicity_result) == str:
+            print('Loading periodicity results')
+            periodicity_df = load_results(periodicity_result)
+        elif type(periodicity_result)==pd.core.frame.DataFrame:
+            periodicity_df = periodicity_result
         
-        gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene_number)
+        gene_list = get_genelist_from_top_n_genes(periodicity_df, filtering_column, top_gene_number)
         plot_linegraphs_from_gene_list(dataset, gene_list)
     
     
