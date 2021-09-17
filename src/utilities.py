@@ -284,6 +284,13 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     return pjyk_results, pydl_results
 
 def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes):
+    '''
+    Return gene list consisting of top n genes based off of the periodicity inputs and a specified number of genes.
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top n genes ranked based off of the JTK p-value.
+    top_genes is an integer that specifies the number of top genes to include
+    '''
+    
     if type(periodicity_result) == str:
         print('Loading periodicity results')
         periodicity_df = load_results(periodicity_result)
@@ -297,7 +304,15 @@ def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene
         print('filtering column must be a numeric column in the periodicity result dataframe.')
         return None
     
-def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below):
+def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below=True):
+    '''
+    Return gene list consisting of top genes based off of the periodicity inputs and a specified numeric threshhold.
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top genes based off of the supplied p-value threshhold.
+    threshhold is a numeric value corresponding to the threshhold for the filtering column
+    threshhold below, when True will include genes with a periodicity score below the threshhold. When False will take genes with a periodicity score above the threshhold.
+    '''
+        
     if type(periodicity_result) == str:
         print('Loading periodicity results')
         periodicity_df = load_results(periodicity_result)
@@ -311,10 +326,16 @@ def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhol
     return gene_list
 
 def closest_column(list_columns, n):
+    '''
+    Returns the column from a list of columns that is closest to the number n. List of columns must contain numbers.
+    '''
       
     return list_columns[min(range(len(list_columns)), key = lambda i: abs(list_columns[i]-n))]
 
 def get_closest_column_from_period(dataset_df, period):
+    '''
+    Returns the column from the supplied dataset that is closest to the supplied period.
+    '''
     columns_in_df = list(dataset_df.columns)
     timepoints_numeric = [int(i) for i in columns_in_df]
     closest_column_int = closest_column(timepoints_numeric, period)
@@ -328,14 +349,19 @@ haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
 
 def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes = 1000, threshhold = None, threshhold_below = True, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
     '''
-    ****** ADD DUPS OPTIONAL
+    Plot genes from a single dataset in a heatmap ordered by first period maximum. Genes included will depend on the top_genes or threshhold values. Top_genes defaults to 1000, so by default the top 1000 genes based off the
+    supplied periodicity result will be plotted.
     
-    Plot genes from a single dataset in a heatmap.
-    Threshhold 
-    
+    dataset
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    period is the period used to create the periodicity result.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top n genes ranked based off of the JTK p-value.
+    top_genes is an integer that specifies the number of top genes to include (default 1000, set to None if you want to filter the genes based off of a threshhold instead)
+    threshhold is a numeric value corresponding to the threshhold for the filtering column (default None, set to a value (i.e. 0.5) and set top_genes to None to filter based off of a threshhold)
+    threshhold below, when True will include genes with a periodicity score below the threshhold. When False will take genes with a periodicity score above the threshhold.
+    handle_duplicates, when True will either drop or relabel duplicates, when True will leave duplicates as is.
     drop_duplicates, when True, will drop duplicates in the dataset based on drop_method. When False, duplicates are relabeled to prevent pyDL from failing.
     drop_method specifies the method to use for determining which duplicates to drop.
-    
     '''
     
     print('Loading data.')
@@ -398,7 +424,16 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     
         
 def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
-
+    '''
+    Plot genes from a single dataset in a heatmap ordered by the supplied order.
+    
+    order is a list containing the genes to plot in the heatmap in the desired order.
+    handle_duplicates, when True will either drop or relabel duplicates, when True will leave duplicates as is.
+    drop_duplicates, when True, will drop duplicates in the dataset based on drop_method. When False, duplicates are relabeled to prevent pyDL from failing.
+    drop_method specifies the method to use for determining which duplicates to drop.
+    '''
+    
+    
     print('Loading data.')
     df = load_dataset(dataset)
 
@@ -430,6 +465,11 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
     s = sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar= True)
 
 def plot_linegraphs_from_gene_list(dataset, gene_list):
+    '''
+    Plots supplied genes in the genelist from a single dataset in lineplots. Can only plot between 1 and 10 genes.
+
+    '''
+    
     print('Loading data.')
     df = load_dataset(dataset)
     
@@ -465,6 +505,15 @@ def plot_linegraphs_from_gene_list(dataset, gene_list):
     
     
 def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering_column, top_gene_number):
+    '''
+    Plots top n genes from a dataset in lineplots. Top genes are determined based off of supplied top gene number and the supplied periodicity results. To
+    
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    period is the period used to create the periodicity result.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top n genes ranked based off of the JTK p-value.
+    top_gene_number is an integer that specifies the number of top genes to include. Must be between 1 and 10.
+    '''
+    
     print(top_gene_number)
     
     if top_gene_number not in list(range(1,11)):
