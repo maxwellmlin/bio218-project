@@ -46,6 +46,14 @@ Installation
   $ conda env create -f conda_req.yml
   $ ipython kernel install --user --name=BioClocksClass
   ```
+
+Tools
+------------
+* pyJTK
+* pyDL
+* DLxJTK
+* LEM
+
 Datasets
 ------------
 
@@ -77,3 +85,10 @@ Below is a table describing the datasets available within this repository. The l
             <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 08</td><td>3 hr</td><td>48 hr</td><td>Pvivax_08</td><td>RNAseq</td><td>nan</td></tr>
             <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 09</td><td>3 hr</td><td>48 hr</td><td>Pvivax_09</td><td>RNAseq</td><td>nan</td></tr></tbody>
   </table>
+
+Can't or don't want to install on your own machine? Let's use a virtual machine courtesy of Duke University.
+----
+https://vcm.duke.edu/
+
+Troubleshooting
+------------
