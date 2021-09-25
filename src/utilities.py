@@ -14,6 +14,13 @@ import platform
 
 DATADIR = '../datasets'
 
+### For normalizing data and getting Haase Lab coloring in heatmaps 
+norm = matplotlib.colors.Normalize(-1.5,1.5)
+colors = [[norm(-1.5), "cyan"],
+      [norm(0), "black"],
+     [norm(1.5), "yellow"]]
+haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
+###
 
 def view_data_toc():
     '''Print the Dataset Table of Contents file'''
@@ -41,6 +48,7 @@ def load_results(periodicity_results_name):
     if '.tsv' not in periodicity_results_name:
         periodicity_results_name = periodicity_results_name + '.tsv'
     return pd.read_csv(f'{DATADIR}/{periodicity_results_name}', index_col=0, sep='\t', comment='#')
+
 
 def convert_periods_to_str(periods):
     '''
@@ -103,7 +111,7 @@ def run_pyjtk(dataset, periods, is_tmp=False):
     return outdir
 
 
-def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
+def run_pydl(dataset, period, numb_reg=1, numb_per=1, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
     '''
     Use pyDL to analyze a time series dataset.
     Period is single period to use in pyDL.
@@ -158,7 +166,7 @@ def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, 
         output, error = submit_cmd.communicate()
         str_error = error.decode("utf-8").split('\n')
         str_output = output.decode("utf-8").split('\n')
-        print(str_output)
+        # print(str_output)
         if len(str_error) > 1:
             print(f'-- Error:')
             [print(e) for e in str_error]
@@ -283,6 +291,52 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     
     return pjyk_results, pydl_results
 
+
+def dlxjtk_func(row):
+    # computes DLxJTK score for one gene in df
+    amp = row["dl_reg_pval_norm"]
+    per = row["jtk_per_pval_norm"]
+    return per * amp * (1 + ((per / 0.001) ** 2)) * (1 + ((amp / 0.001) ** 2))
+
+
+def run_dlxjtk(pyjtk_results, pydl_results):
+    '''
+    Computes the DLxJTK score using results from pyJTK and pyDL. The pyJTK and pyDL results must be from the same time series.
+
+    pyjtk_results: results from running pyJTK on a time series file as pyDL was run on
+    pydl_results: results from running pyDL on the same time series file as pyJTK was run on
+
+    Returns a pandas dataframe
+    '''
+
+    if type(pyjtk_results) == str:
+        print('Loading periodicity results')
+        jtk_df = load_results(pyjtk_results)
+    elif type(pyjtk_results)==pd.core.frame.DataFrame:
+        jtk_df = pyjtk_results
+    if type(pydl_results) == str:
+        print('Loading periodicity results')
+        dl_df = load_results(pydl_results)
+    elif type(pydl_results)==pd.core.frame.DataFrame:
+        dl_df = pydl_results
+    
+    dl_df.rename(columns={'p_reg': 'dl_reg_pval', 'p_reg_norm': 'dl_reg_pval_norm'}, inplace=True)
+    jtk_df.rename(columns={'p-value': 'jtk_per_pval'}, inplace=True)
+
+    # normalize jtk p-values for use in dlxjtk score
+    jtk_df['jtk_per_pval_norm'] = jtk_df['jtk_per_pval'] / np.median(jtk_df['jtk_per_pval'])
+
+    # merge dl and jtk dataframes
+    dlxjtk_df = pd.merge(dl_df, jtk_df, left_index=True, right_index=True)
+    dlxjtk_df = dlxjtk_df[['dl_reg_pval', 'dl_reg_pval_norm', 'jtk_per_pval', 'jtk_per_pval_norm']]
+
+    # compute dlxjtk score and sort genes by the score
+    dlxjtk_df['dlxjtk_score'] = dlxjtk_df.apply(dlxjtk_func, axis=1)
+    dlxjtk_df.sort_values(by='dlxjtk_score', axis=0, ascending=True, inplace=True)
+
+    return dlxjtk_df
+
+
 def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes):
     '''
     Return gene list consisting of top n genes based off of the periodicity inputs and a specified number of genes.
@@ -304,6 +358,7 @@ def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene
         print('filtering column must be a numeric column in the periodicity result dataframe.')
         return None
     
+
 def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below=True):
     '''
     Return gene list consisting of top genes based off of the periodicity inputs and a specified numeric threshhold.
@@ -325,12 +380,14 @@ def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhol
         gene_list= list(periodicity_df.loc[periodicity_df[filtering_column]>threshhold].index)
     return gene_list
 
+
 def closest_column(list_columns, n):
     '''
     Returns the column from a list of columns that is closest to the number n. List of columns must contain numbers.
     '''
       
     return list_columns[min(range(len(list_columns)), key = lambda i: abs(list_columns[i]-n))]
+
 
 def get_closest_column_from_period(dataset_df, period):
     '''
@@ -341,13 +398,8 @@ def get_closest_column_from_period(dataset_df, period):
     closest_column_int = closest_column(timepoints_numeric, period)
     return closest_column_int
 
-norm = matplotlib.colors.Normalize(-1.5,1.5)
-colors = [[norm(-1.5), "cyan"],
-      [norm(0), "black"],
-     [norm(1.5), "yellow"]]
-haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
 
-def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes = 1000, threshhold = None, threshhold_below = True, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
+def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes=1000, threshhold=None, threshhold_below=True, handle_duplicates=False, drop_duplicates=False, drop_method='max'):
     '''
     Plot genes from a single dataset in a heatmap ordered by first period maximum. Genes included will depend on the top_genes or threshhold values. Top_genes defaults to 1000, so by default the top 1000 genes based off the
     supplied periodicity result will be plotted.
@@ -364,17 +416,20 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     drop_method specifies the method to use for determining which duplicates to drop.
     '''
     
-    print('Loading data.')
-    df = load_dataset(dataset)
-    
-    if handle_duplicates:
-        if drop_duplicates:
-            print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
-            df = remove_duplicates(df, drop_method)
-        else:
-            print('Relabeling duplicates.')
-            df = relabel_duplicates(df)
-
+    if type(dataset) == str: 
+        print('Loading data.')
+        df = load_dataset(dataset)
+        
+        if handle_duplicates:
+            if drop_duplicates:
+                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+                df = remove_duplicates(df, drop_method)
+            else:
+                print('Relabeling duplicates.')
+                df = relabel_duplicates(df)
+    else:
+        df = dataset
+        dataset = 'Time Series Data'
     
     if top_genes is not None and threshhold is None:
         gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
@@ -396,8 +451,6 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     z_pyjtk = scipy.stats.zscore(data, axis=1)
     z_pyjtk_df = pd.DataFrame(z_pyjtk, index=data.index, columns=data.columns)
     
-
-    list_columns = list(data.columns)
     first_period = get_closest_column_from_period(data, period)
     first_period_index = data.columns.get_loc(str(first_period))
     
@@ -407,7 +460,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     z_pyjtk_df["max"] = pd.to_numeric(z_pyjtk_df["max"])
     z_pyjtk_df = z_pyjtk_df.sort_values(by="max", axis=0)
     z_pyjtk_df = z_pyjtk_df.drop(columns=['max'])
-    order = z_pyjtk_df.index
+
     fig = plt.figure(figsize = (8,8))
     
     if top_genes is not None:
@@ -419,10 +472,10 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
     fig.subplots_adjust(top = 0.90)
 
-    s = sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar = True)
-        
-    
-        
+    sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar = True)
+    plt.show()
+
+
 def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
     '''
     Plot genes from a single dataset in a heatmap ordered by the supplied order.
@@ -433,9 +486,20 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
     drop_method specifies the method to use for determining which duplicates to drop.
     '''
     
-    
-    print('Loading data.')
-    df = load_dataset(dataset)
+    if type(dataset) == str: 
+        print('Loading data.')
+        df = load_dataset(dataset)
+        
+        if handle_duplicates:
+            if drop_duplicates:
+                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+                df = remove_duplicates(df, drop_method)
+            else:
+                print('Relabeling duplicates.')
+                df = relabel_duplicates(df)
+    else:
+        df = dataset
+        dataset = 'Time Series Data'
 
     if handle_duplicates:
         if drop_duplicates:
@@ -462,16 +526,30 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
     plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
     fig.subplots_adjust(top = 0.90)
 
-    s = sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar= True)
+    sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar= True)
+    plt.show()
 
-def plot_linegraphs_from_gene_list(dataset, gene_list):
+
+def plot_linegraphs_from_gene_list(dataset, gene_list, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
     '''
     Plots supplied genes in the genelist from a single dataset in lineplots. Can only plot between 1 and 10 genes.
 
     '''
     
-    print('Loading data.')
-    df = load_dataset(dataset)
+    if type(dataset) == str: 
+        print('Loading data.')
+        df = load_dataset(dataset)
+        
+        if handle_duplicates:
+            if drop_duplicates:
+                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+                df = remove_duplicates(df, drop_method)
+            else:
+                print('Relabeling duplicates.')
+                df = relabel_duplicates(df)
+    else:
+        df = dataset
+        dataset = 'Time Series Data'
     
     if len(gene_list) <=5 and len(gene_list)>0:
         num_rows = 1
@@ -498,12 +576,12 @@ def plot_linegraphs_from_gene_list(dataset, gene_list):
     fig.subplots_adjust(hspace=0.3, wspace=0.3, top = top_size)
     plt.suptitle(dataset, fontsize=15, y = 0.99)    
 
-    for i in range(0,len(gene_list)):
+    for i, genename in enumerate(gene_list):
         plt.subplot(num_rows, num_columns, i+1)
-        sns.lineplot(x = df.columns, y = df.iloc[i]).set_title(df.index[i])
+        sns.lineplot(x = df.columns, y = df.loc[genename,:]).set_title(genename)
+    plt.show()
     
-    
-    
+
 def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering_column, top_gene_number):
     '''
     Plots top n genes from a dataset in lineplots. Top genes are determined based off of supplied top gene number and the supplied periodicity results. To
@@ -514,13 +592,9 @@ def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering
     top_gene_number is an integer that specifies the number of top genes to include. Must be between 1 and 10.
     '''
     
-    print(top_gene_number)
-    
     if top_gene_number not in list(range(1,11)):
         print("top_gene_number must be between 1 and 10")
     else:
-        print('Loading data.')
-        df = load_dataset(dataset)
         
         if type(periodicity_result) == str:
             print('Loading periodicity results')
