@@ -5,8 +5,22 @@ import datetime
 import subprocess
 import pandas as pd
 
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy
+import seaborn as sns
+import matplotlib
+import platform
+
 DATADIR = '../datasets'
 
+### For normalizing data and getting Haase Lab coloring in heatmaps 
+norm = matplotlib.colors.Normalize(-1.5,1.5)
+colors = [[norm(-1.5), "cyan"],
+      [norm(0), "black"],
+     [norm(1.5), "yellow"]]
+haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
+###
 
 def view_data_toc():
     '''Print the Dataset Table of Contents file'''
@@ -24,6 +38,16 @@ def load_dataset(dataset_name):
         dataset_name = dataset_name + '.tsv'
     return pd.read_csv(f'{DATADIR}/{dataset_name}', index_col=0, sep='\t', comment='#')
 
+
+def load_results(periodicity_results_name):
+    '''
+    Load periodicity results into a dataframe
+    
+    periodicity_results_name: the file name of the periodicity results file. Will be stored as the output of running the periodicity functions.
+    '''
+    if '.tsv' not in periodicity_results_name:
+        periodicity_results_name = periodicity_results_name + '.tsv'
+    return pd.read_csv(f'{DATADIR}/{periodicity_results_name}', index_col=0, sep='\t', comment='#')
 
 
 def convert_periods_to_str(periods):
@@ -87,7 +111,7 @@ def run_pyjtk(dataset, periods, is_tmp=False):
     return outdir
 
 
-def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, verbose=False, is_tmp=False):
+def run_pydl(dataset, period, numb_reg=1, numb_per=1, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
     '''
     Use pyDL to analyze a time series dataset.
     Period is single period to use in pyDL.
@@ -112,28 +136,42 @@ def run_pydl(dataset, period, numb_reg=1000000, numb_per=10000, log_trans=True, 
     outfile = f'{dataset}_pydl_{datetimestr}.tsv'
     outdir = f'../results/{outfile}'
     
-    print(f'-- Running pyDL on dataset {dataset}, testing a period of {period}')
-    
-    full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir, 
-                '-r', str(numb_reg), 
-                '-p', str(numb_per), 
-                '-l', str(log_trans), 
-                '-v', str(verbose)]    
-    
-    submit_cmd = subprocess.Popen(full_cmd, 
-                                  stdout=subprocess.PIPE, 
-                                  stderr=subprocess.PIPE)
-    
-    print(f'-- Command used: {" ".join(full_cmd)}')
-    
-    output, error = submit_cmd.communicate()
-    str_error = error.decode("utf-8").split('\n')
-    str_output = output.decode("utf-8").split('\n')
-    if len(str_error) > 1:
-        print(f'-- Error:')
-        [print(e) for e in str_error]
+    system = platform.system()
+    if system == 'Windows' and windows_issues:
+        print('** IMPORTANT: System was detected as Windows. ** There is currently an issue running pyDL on Windows through the Jupyter notebook. Two commands will be printed below. Go into the terminal and change into the biological_clocks_class folder as described in the README.Then copy and paste the following commands. ')
+        print(f' -- Printing command for pyDL on dataset {dataset}, testing period of {period}:')
+        pydl_path_windows = pydl_path.replace("../", "")
+        data_path_windows = data_path.replace("../", "")
+        outdir_windows = outdir.replace("../", "")
+        command0 ='Command 1: conda activate BioClocksClass'
+        command = f'Command 2: mpiexec -n 2 python {pydl_path_windows} {data_path_windows} -T {period} -o {outdir_windows} -r {numb_reg} -p {numb_per} -l {log_trans} -v {verbose}'
+        print (command0)
+        print(command)
+    else:
+        print(f'-- Running pyDL on dataset {dataset}, testing a period of {period}')
 
-    print(f'-- Results saved as {outfile} in the results directory')
+        full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir, 
+                    '-r', str(numb_reg), 
+                    '-p', str(numb_per), 
+                    '-l', str(log_trans), 
+                    '-v', str(verbose)]    
+        print(f'-- Command used: {" ".join(full_cmd)}')
+
+        submit_cmd = subprocess.Popen(full_cmd, 
+                                      stdout=subprocess.PIPE, 
+                                      stderr=subprocess.PIPE)
+
+
+
+        output, error = submit_cmd.communicate()
+        str_error = error.decode("utf-8").split('\n')
+        str_output = output.decode("utf-8").split('\n')
+        # print(str_output)
+        if len(str_error) > 1:
+            print(f'-- Error:')
+            [print(e) for e in str_error]
+
+        print(f'-- Results saved as {outfile} in the results directory')
     
     return outdir
 
@@ -208,7 +246,7 @@ def relabel_duplicates(dataset):
     return df
 
 
-def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False, drop_method='max'):
+def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False, drop_method='max', windows_issues = False):
     '''
     Run pyJTK and pyDL on a single dataset.
     pyjtk_periods is a list of periods to use in pyJTK
@@ -237,11 +275,343 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     pyjtk_results_path = run_pyjtk(tmp_file, pyjtk_periods, is_tmp=True)
     
     print('Running pyDL')
-    pydl_results_path = run_pydl(tmp_file, pydl_periods, is_tmp=True)
+    pydl_results_path = run_pydl(tmp_file, pydl_periods, is_tmp=True, windows_issues=windows_issues)
     
-    pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
-    pydl_results = pd.read_csv(pydl_results_path, sep='\t', index_col=0, comment='#')
-    
-    os.remove(tmp_file)
+    system = platform.system()
+    if system == 'Windows' and windows_issues:
+        pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
+        pydl_results = pydl_results_path
+        print('After pyDL has completed in the terminal, please run the following line in the next cell in the Jupyter notebook. You can also delete the temp file that was created in the tmp folder.')
+        command = 'pydl_results = load_results(pydl_results)'
+        print(f"Code for jupyter cell: {command}")
+    else:
+        pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
+        pydl_results = pd.read_csv(pydl_results_path, sep='\t', index_col=0, comment='#')
+        os.remove(tmp_file)
     
     return pjyk_results, pydl_results
+
+
+def dlxjtk_func(row):
+    # computes DLxJTK score for one gene in df
+    amp = row["dl_reg_pval_norm"]
+    per = row["jtk_per_pval_norm"]
+    return per * amp * (1 + ((per / 0.001) ** 2)) * (1 + ((amp / 0.001) ** 2))
+
+
+def run_dlxjtk(pyjtk_results, pydl_results):
+    '''
+    Computes the DLxJTK score using results from pyJTK and pyDL. The pyJTK and pyDL results must be from the same time series.
+
+    pyjtk_results: results from running pyJTK on a time series file as pyDL was run on
+    pydl_results: results from running pyDL on the same time series file as pyJTK was run on
+
+    Returns a pandas dataframe
+    '''
+
+    if type(pyjtk_results) == str:
+        print('Loading periodicity results')
+        jtk_df = load_results(pyjtk_results)
+    elif type(pyjtk_results)==pd.core.frame.DataFrame:
+        jtk_df = pyjtk_results
+    if type(pydl_results) == str:
+        print('Loading periodicity results')
+        dl_df = load_results(pydl_results)
+    elif type(pydl_results)==pd.core.frame.DataFrame:
+        dl_df = pydl_results
+    
+    dl_df.rename(columns={'p_reg': 'dl_reg_pval', 'p_reg_norm': 'dl_reg_pval_norm'}, inplace=True)
+    jtk_df.rename(columns={'p-value': 'jtk_per_pval'}, inplace=True)
+
+    # normalize jtk p-values for use in dlxjtk score
+    jtk_df['jtk_per_pval_norm'] = jtk_df['jtk_per_pval'] / np.median(jtk_df['jtk_per_pval'])
+
+    # merge dl and jtk dataframes
+    dlxjtk_df = pd.merge(dl_df, jtk_df, left_index=True, right_index=True)
+    dlxjtk_df = dlxjtk_df[['dl_reg_pval', 'dl_reg_pval_norm', 'jtk_per_pval', 'jtk_per_pval_norm']]
+
+    # compute dlxjtk score and sort genes by the score
+    dlxjtk_df['dlxjtk_score'] = dlxjtk_df.apply(dlxjtk_func, axis=1)
+    dlxjtk_df.sort_values(by='dlxjtk_score', axis=0, ascending=True, inplace=True)
+
+    return dlxjtk_df
+
+
+def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes):
+    '''
+    Return gene list consisting of top n genes based off of the periodicity inputs and a specified number of genes.
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top n genes ranked based off of the JTK p-value.
+    top_genes is an integer that specifies the number of top genes to include
+    '''
+    
+    if type(periodicity_result) == str:
+        print('Loading periodicity results')
+        periodicity_df = load_results(periodicity_result)
+    elif type(periodicity_result)==pd.core.frame.DataFrame:
+        periodicity_df = periodicity_result
+    if filtering_column in periodicity_df.columns:
+        periodicity_df=periodicity_df.sort_values(by=filtering_column)
+        gene_list = list(periodicity_df.iloc[0:top_genes].index)
+        return gene_list
+    else:
+        print('filtering column must be a numeric column in the periodicity result dataframe.')
+        return None
+    
+
+def get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below=True):
+    '''
+    Return gene list consisting of top genes based off of the periodicity inputs and a specified numeric threshhold.
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top genes based off of the supplied p-value threshhold.
+    threshhold is a numeric value corresponding to the threshhold for the filtering column
+    threshhold below, when True will include genes with a periodicity score below the threshhold. When False will take genes with a periodicity score above the threshhold.
+    '''
+        
+    if type(periodicity_result) == str:
+        print('Loading periodicity results')
+        periodicity_df = load_results(periodicity_result)
+    elif type(periodicity_result)==pd.core.frame.DataFrame:
+        periodicity_df = periodicity_result
+    
+    if threshhold_below:
+        gene_list = list(periodicity_df.loc[periodicity_df[filtering_column]<threshhold].index)
+    else:
+        gene_list= list(periodicity_df.loc[periodicity_df[filtering_column]>threshhold].index)
+    return gene_list
+
+
+def closest_column(list_columns, n):
+    '''
+    Returns the column from a list of columns that is closest to the number n. List of columns must contain numbers.
+    '''
+      
+    return list_columns[min(range(len(list_columns)), key = lambda i: abs(list_columns[i]-n))]
+
+
+def get_closest_column_from_period(dataset_df, period):
+    '''
+    Returns the column from the supplied dataset that is closest to the supplied period.
+    '''
+    columns_in_df = list(dataset_df.columns)
+    timepoints_numeric = [int(i) for i in columns_in_df]
+    closest_column_int = closest_column(timepoints_numeric, period)
+    return closest_column_int
+
+
+def normalize_data(dataset):
+    ''''
+    Z-score normalize a time series dataframe.
+    '''
+    z_pyjtk = scipy.stats.zscore(dataset, axis=1)
+    return pd.DataFrame(z_pyjtk, index=dataset.index, columns=dataset.columns)
+
+
+def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes=1000, threshhold=None, threshhold_below=True, handle_duplicates=False, drop_duplicates=False, drop_method='max'):
+    '''
+    Plot genes from a single dataset in a heatmap ordered by first period maximum. Genes included will depend on the top_genes or threshhold values. Top_genes defaults to 1000, so by default the top 1000 genes based off the
+    supplied periodicity result will be plotted.
+    
+    dataset
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    period is the period used to create the periodicity result.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top n genes ranked based off of the JTK p-value.
+    top_genes is an integer that specifies the number of top genes to include (default 1000, set to None if you want to filter the genes based off of a threshhold instead)
+    threshhold is a numeric value corresponding to the threshhold for the filtering column (default None, set to a value (i.e. 0.5) and set top_genes to None to filter based off of a threshhold)
+    threshhold below, when True will include genes with a periodicity score below the threshhold. When False will take genes with a periodicity score above the threshhold.
+    handle_duplicates, when True will either drop or relabel duplicates, when True will leave duplicates as is.
+    drop_duplicates, when True, will drop duplicates in the dataset based on drop_method. When False, duplicates are relabeled to prevent pyDL from failing.
+    drop_method specifies the method to use for determining which duplicates to drop.
+    '''
+    
+    if type(dataset) == str: 
+        print('Loading data.')
+        df = load_dataset(dataset)
+        
+        if handle_duplicates:
+            if drop_duplicates:
+                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+                df = remove_duplicates(df, drop_method)
+            else:
+                print('Relabeling duplicates.')
+                df = relabel_duplicates(df)
+    else:
+        df = dataset
+        dataset = 'Time Series Data'
+    
+    if top_genes is not None and threshhold is None:
+        gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
+    elif top_genes is not None and threshhold is not None:
+        gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
+        print('Note: both threshhold and top genes were supplied with a value. Using top genes. To use threshhold, please set top genes to None.')
+    else:
+        if threshhold is not None:
+            gene_list = get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below)
+        else:
+            print('Either top_genes or threshhold must be not None.')
+    df = df.reindex(gene_list)
+    data = df.loc[gene_list]
+    if len(gene_list)>75:
+        yticks = False
+    else:
+        yticks = True
+    
+    z_pyjtk_df = normalize_data(data)
+    
+    first_period = get_closest_column_from_period(data, period)
+    first_period_index = data.columns.get_loc(str(first_period))
+    
+    z_pyjtk_1stperiod = z_pyjtk_df.iloc[:, 0:first_period_index]
+    max_time = z_pyjtk_1stperiod.idxmax(axis=1)
+    z_pyjtk_df["max"] = max_time
+    z_pyjtk_df["max"] = pd.to_numeric(z_pyjtk_df["max"])
+    z_pyjtk_df = z_pyjtk_df.sort_values(by="max", axis=0)
+    z_pyjtk_df = z_pyjtk_df.drop(columns=['max'])
+
+    fig = plt.figure(figsize = (8,8))
+    
+    if top_genes is not None:
+        subtitle = "Filtered by " + filtering_column +": top " + str(top_genes) +" genes\n"
+    elif threshhold is not None:
+        subtitle = dataset + "Filtered by " + filtering_column +" with threshold = "+ str(threshhold) +"\n"
+    title = dataset
+    plt.title(subtitle, fontsize = 13, y = .96)
+    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
+    fig.subplots_adjust(top = 0.90)
+
+    sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar = True)
+    plt.show()
+
+
+def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
+    '''
+    Plot genes from a single dataset in a heatmap ordered by the supplied order.
+    
+    order is a list containing the genes to plot in the heatmap in the desired order.
+    handle_duplicates, when True will either drop or relabel duplicates, when True will leave duplicates as is.
+    drop_duplicates, when True, will drop duplicates in the dataset based on drop_method. When False, duplicates are relabeled to prevent pyDL from failing.
+    drop_method specifies the method to use for determining which duplicates to drop.
+    '''
+    
+    if type(dataset) == str: 
+        print('Loading data.')
+        df = load_dataset(dataset)
+        
+        if handle_duplicates:
+            if drop_duplicates:
+                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+                df = remove_duplicates(df, drop_method)
+            else:
+                print('Relabeling duplicates.')
+                df = relabel_duplicates(df)
+    else:
+        df = dataset
+        dataset = 'Time Series Data'
+
+    if handle_duplicates:
+        if drop_duplicates:
+            print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+            df = remove_duplicates(df, drop_method)
+        else:
+            print('Relabeling duplicates.')
+            df = relabel_duplicates(df)
+            
+    if len(order)>100:
+        yticks = False
+    else:
+        yticks = True
+
+    df = df.reindex(order)
+    data = df.loc[order]
+    z_pyjtk_df = normalize_data(data)
+
+    fig = plt.figure(figsize = (8,8))
+    subtitle = "Ordered by supplied genelist"
+    title = dataset
+    plt.title(subtitle, fontsize = 13, y = .995)
+    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
+    fig.subplots_adjust(top = 0.90)
+
+    sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar= True)
+    plt.show()
+
+
+def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
+    '''
+    Plots supplied genes in the genelist from a single dataset in lineplots. Can only plot between 1 and 10 genes.
+
+    '''
+    
+    if type(dataset) == str: 
+        print('Loading data.')
+        df = load_dataset(dataset)
+        
+        if handle_duplicates:
+            if drop_duplicates:
+                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
+                df = remove_duplicates(df, drop_method)
+            else:
+                print('Relabeling duplicates.')
+                df = relabel_duplicates(df)
+    else:
+        df = dataset
+        dataset = 'Time Series Data'
+    
+    if norm_data:
+        df = normalize_data(df)
+
+    if len(gene_list) <=5 and len(gene_list)>0:
+        num_rows = 1
+        num_columns = len(gene_list)
+        length_size = 3
+        width_size = len(gene_list)*4
+        
+    elif len(gene_list) > 5 and len(gene_list)<=10:
+        num_rows = 2
+        num_columns = 5
+        length_size = 6
+        width_size = 20
+    else:
+        print("Gene-list must be between 1 and 10 genes in length")
+        
+    
+    fig = plt.figure(figsize = (width_size,length_size))
+    
+    if len(gene_list) <=5 and len(gene_list)>0:
+        top_size = .8
+    elif len(gene_list) > 5 and len(gene_list)<=10:
+        top_size = 0.9
+    
+    fig.subplots_adjust(hspace=0.3, wspace=0.3, top = top_size)
+    plt.suptitle(dataset, fontsize=15, y = 0.99)    
+
+    for i, genename in enumerate(gene_list):
+        plt.subplot(num_rows, num_columns, i+1)
+        sns.lineplot(x = df.columns, y = df.loc[genename,:]).set_title(genename)
+    plt.show()
+    
+
+def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering_column, top_gene_number, norm_data=False):
+    '''
+    Plots top n genes from a dataset in lineplots. Top genes are determined based off of supplied top gene number and the supplied periodicity results. To
+    
+    periodicity_result is the output from run_periodicity, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
+    period is the period used to create the periodicity result.
+    filtering_column is the name of a column in the periodicity result above. For example, for JTK specifying 'p-value' will allow for the top n genes ranked based off of the JTK p-value.
+    top_gene_number is an integer that specifies the number of top genes to include. Must be between 1 and 10.
+    '''
+    
+    if top_gene_number not in list(range(1,11)):
+        print("top_gene_number must be between 1 and 10")
+    else:
+        
+        if type(periodicity_result) == str:
+            print('Loading periodicity results')
+            periodicity_df = load_results(periodicity_result)
+        elif type(periodicity_result)==pd.core.frame.DataFrame:
+            periodicity_df = periodicity_result
+        
+        gene_list = get_genelist_from_top_n_genes(periodicity_df, filtering_column, top_gene_number)
+        plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=norm_data)
+    
+    
