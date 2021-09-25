@@ -399,6 +399,14 @@ def get_closest_column_from_period(dataset_df, period):
     return closest_column_int
 
 
+def normalize_data(dataset):
+    ''''
+    Z-score normalize a time series dataframe.
+    '''
+    z_pyjtk = scipy.stats.zscore(dataset, axis=1)
+    return pd.DataFrame(z_pyjtk, index=dataset.index, columns=dataset.columns)
+
+
 def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes=1000, threshhold=None, threshhold_below=True, handle_duplicates=False, drop_duplicates=False, drop_method='max'):
     '''
     Plot genes from a single dataset in a heatmap ordered by first period maximum. Genes included will depend on the top_genes or threshhold values. Top_genes defaults to 1000, so by default the top 1000 genes based off the
@@ -448,8 +456,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     else:
         yticks = True
     
-    z_pyjtk = scipy.stats.zscore(data, axis=1)
-    z_pyjtk_df = pd.DataFrame(z_pyjtk, index=data.index, columns=data.columns)
+    z_pyjtk_df = normalize_data(data)
     
     first_period = get_closest_column_from_period(data, period)
     first_period_index = data.columns.get_loc(str(first_period))
@@ -513,14 +520,13 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
         yticks = False
     else:
         yticks = True
+
     df = df.reindex(order)
     data = df.loc[order]
-    z_pyjtk = scipy.stats.zscore(data, axis=1)
-    z_pyjtk_df = pd.DataFrame(z_pyjtk, index=data.index, columns=data.columns)
+    z_pyjtk_df = normalize_data(data)
+
     fig = plt.figure(figsize = (8,8))
-
     subtitle = "Ordered by supplied genelist"
-
     title = dataset
     plt.title(subtitle, fontsize = 13, y = .995)
     plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
@@ -530,7 +536,7 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
     plt.show()
 
 
-def plot_linegraphs_from_gene_list(dataset, gene_list, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
+def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
     '''
     Plots supplied genes in the genelist from a single dataset in lineplots. Can only plot between 1 and 10 genes.
 
@@ -551,6 +557,9 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, handle_duplicates = False
         df = dataset
         dataset = 'Time Series Data'
     
+    if norm_data:
+        df = normalize_data(df)
+
     if len(gene_list) <=5 and len(gene_list)>0:
         num_rows = 1
         num_columns = len(gene_list)
@@ -582,7 +591,7 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, handle_duplicates = False
     plt.show()
     
 
-def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering_column, top_gene_number):
+def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering_column, top_gene_number, norm_data=False):
     '''
     Plots top n genes from a dataset in lineplots. Top genes are determined based off of supplied top gene number and the supplied periodicity results. To
     
@@ -603,6 +612,6 @@ def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering
             periodicity_df = periodicity_result
         
         gene_list = get_genelist_from_top_n_genes(periodicity_df, filtering_column, top_gene_number)
-        plot_linegraphs_from_gene_list(dataset, gene_list)
+        plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=norm_data)
     
     
