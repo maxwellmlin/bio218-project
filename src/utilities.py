@@ -24,7 +24,7 @@ haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
 
 def view_data_toc():
     '''Print the Dataset Table of Contents file'''
-    toc_df = pd.read_csv(f'{DATADIR}/dataset_TOC.csv', index_col=0, comment='#', dtype=str)
+    toc_df = pd.read_csv(os.path.join(DATADIR, 'dataset_TOC.csv'), index_col=0, comment='#', dtype=str)
     return toc_df
 
 
@@ -36,7 +36,7 @@ def load_dataset(dataset_name):
     '''
     if '.tsv' not in dataset_name:
         dataset_name = dataset_name + '.tsv'
-    return pd.read_csv(f'{DATADIR}/{dataset_name}', index_col=0, sep='\t', comment='#')
+    return pd.read_csv(os.path.join(DATADIR, dataset_name), index_col=0, sep='\t', comment='#')
 
 
 def load_results(periodicity_results_name):
@@ -47,7 +47,7 @@ def load_results(periodicity_results_name):
     '''
     if '.tsv' not in periodicity_results_name:
         periodicity_results_name = periodicity_results_name + '.tsv'
-    return pd.read_csv(f'{DATADIR}/{periodicity_results_name}', index_col=0, sep='\t', comment='#')
+    return pd.read_csv(os.path.join(DATADIR, periodicity_results_name), index_col=0, sep='\t', comment='#')
 
 
 def convert_periods_to_str(periods):
