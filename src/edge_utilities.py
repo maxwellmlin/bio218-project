@@ -1,17 +1,10 @@
 import os
-import sys
 import time
-import ntpath
 import datetime
 import subprocess
+import ipycytoscape
 import pandas as pd
 
-import numpy as np
-import matplotlib.pyplot as plt
-import scipy
-import seaborn as sns
-import matplotlib
-import platform
 
 from configobj import ConfigObj
 
@@ -73,7 +66,6 @@ def gen_lempy_config(co, dataset_name, target_list, repressor_list, activator_li
     lempy_config['data_files'] = co['data_files']
     lempy_config['verbose'] = co['verbose']
     lempy_config['num_proc'] = co['num_proc']
-    lempy_config['annotation_file'] = co['annotation_file']
 
     # Specify the default output location needed for the next step
     lempy_config['output_dir'] = os.path.join(lempy_config['output_dir'], f'lempy_{dataset_name.split(".")[0]}_{datetimestr}')
@@ -103,7 +95,7 @@ def gen_lempy_config(co, dataset_name, target_list, repressor_list, activator_li
     return lempy_config
 
 
-def run_lem(dataset_name, target_list, repressor_list, activator_list, annotation_file, num_proc=2, verbose=False):
+def run_lem(dataset_name, target_list, repressor_list, activator_list, num_proc=2, verbose=False):
 
     datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
@@ -111,7 +103,6 @@ def run_lem(dataset_name, target_list, repressor_list, activator_list, annotatio
         dataset_name = dataset_name + '.tsv'
 
     user_dict = {'data_files':[os.path.join(DATADIR, dataset_name)],
-                'annotation_file':annotation_file,
                 'num_proc':num_proc,
                 'verbose':verbose}
 
@@ -164,4 +155,71 @@ def run_lem(dataset_name, target_list, repressor_list, activator_list, annotatio
         return all_scores_df, all_target_df, all_localmin_df
 
 
-# TODO: add network making and vix functions
+def df_edges_to_ipycytoscape(lem_edge_list):
+    '''
+    converts a list of edges in LEM specification into a cytoscape element which can then be used in ipycytoscape for vizualizing a network. Also returns a cytoscape style dictionary.
+
+    lem_edge_list: a list of edges in LEM specification
+    '''
+    nodes = list()
+    edges = list()
+    cyto_elements = dict()
+    for lem_edge in list(lem_edge_list):
+            target = lem_edge.split("=")[0]
+            source = lem_edge.split("=")[1].split("(")[1].split(")")[0]
+            type_reg = lem_edge.split("=")[1].split("(")[0]
+
+            nodes.append({'data': {'id': source, 'label': source}})
+            nodes.append({'data': {'id': target, 'label': target}})
+            if type_reg == "tf_rep":
+                edges.append({'data': {'id': f'{source}-{target}', 'source': source, 'target': target}, 'classes': 'rep'})
+
+            else:
+                edges.append({'data': {'id': f'{source}-{target}', 'source': source, 'target': target}, 'classes': 'act'})
+
+    nodes = [i for n, i in enumerate(nodes) if i not in nodes[n + 1:]]
+    cyto_elements['nodes'] = nodes
+    cyto_elements['edges'] = edges
+    cyto_styles = [{'selector': 'node', 'style': {'content': 'data(label)'}},
+        {'selector': 'edge', 'style': {'curve-style': 'bezier'}},
+        {'selector': '.rep', 'style': {'target-arrow-color': 'red', 'line-color': 'red', 'target-arrow-shape': 'tee'}},
+        {'selector': '.act', 'style': {'target-arrow-color': 'green', 'target-arrow-shape': 'triangle', 'line-color': 'green'}}]
+    return cyto_elements, cyto_styles
+
+
+def make_network_from_edge_list(lem_edge_list):
+    '''
+    Make an interactive graph from a list of edges in LEM edge specification.
+
+    lem_edge_list: a list of LEM edges. Each item in the list is in the format 'target=tf_rep(source)'. This is how LEM specifies an edge.
+    Example: If the gene YOX1 represses SWI4 transcription then 'SWI4=tf_rep(YOX1)', or if SWI4 activates YOX1 then 'YOX1=tf_act(SWI4)'.
+    
+    Returns an interactive network made from the list of LEM edges.
+    '''
+
+    elements, styles = df_edges_to_ipycytoscape(lem_edge_list)
+    cytonet = ipycytoscape.CytoscapeWidget(user_zooming_enabled=False, panning_enabled=False)
+    cytonet.graph.add_graph_from_json(elements, multiple_edges=True)
+    cytonet.set_style(styles)
+    return cytonet
+
+
+def make_top_edge_network(lem_all_scores_df, top_n_edges, score='pld'):
+    '''
+    Make an interactive graph from the top N edges from the LEM all_scores dataframe.
+
+    lem_all_scores_df: the dataframe containing the all_scores results returned from running LEMpy
+    top_n_edges: the integer to threshold the all_scores dataframe on
+    score: the column in the all_scores dataframe to rank on before thresholding. Options are 'pld', 'loss', and 'norm_loss'. Default is 'pld'.
+
+    Returns an interactive network made from the LEM edges.
+    '''
+    if score == 'pld':
+        lem_all_scores_df = lem_all_scores_df.sort_values(by=score, ascending=False)
+    else:
+        lem_all_scores_df = lem_all_scores_df.sort_values(by=score)
+    lem_edge_list = lem_all_scores_df.index.tolist()[:int(top_n_edges)]
+    return make_network_from_edge_list(lem_edge_list)
+
+
+
