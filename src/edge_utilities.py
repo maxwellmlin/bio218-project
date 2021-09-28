@@ -96,6 +96,22 @@ def gen_lempy_config(co, dataset_name, target_list, repressor_list, activator_li
 
 
 def run_lem(dataset_name, target_list, repressor_list, activator_list, num_proc=2, verbose=False):
+    '''
+    Run LEMpy on a time series dataset, specifying what genes are targets, transcriptional repressors and transcription activators.
+    ** Gene names must be in the time series dataset. **
+
+    dataset_name: The name of the time series dataset. This name is taken from the column Dataset in the Data Table of Contents. 
+    target_list: a list of gene names which LEM will treat as targets
+    repressor_list: a list of gene names which LEM will treat as transcriptional repressors
+    activator_list: a list of gene names which LEM will treat as transcription activators
+    num_proc: the number of processors to use. Default: 2
+    verbose: a boolean which tells LEMpy to print out statements from the code. Default: False
+
+    ** NOTE: A gene can be both a target and a regulator, additionally, a gene that is a regulator can be a repressor and an activator. **
+    ** Therefore, depending on the role of the gene, it can be in any combination of the three lists, inlcuding all of them. **
+
+    '''
+
 
     datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
@@ -161,6 +177,7 @@ def df_edges_to_ipycytoscape(lem_edge_list):
 
     lem_edge_list: a list of edges in LEM specification
     '''
+
     nodes = list()
     edges = list()
     cyto_elements = dict()
@@ -214,6 +231,7 @@ def make_top_edge_network(lem_all_scores_df, top_n_edges, score='pld'):
 
     Returns an interactive network made from the LEM edges.
     '''
+
     if score == 'pld':
         lem_all_scores_df = lem_all_scores_df.sort_values(by=score, ascending=False)
     else:
