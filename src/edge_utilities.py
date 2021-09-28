@@ -95,12 +95,12 @@ def gen_lempy_config(co, dataset_name, target_list, repressor_list, activator_li
     return lempy_config
 
 
-def run_lem(dataset_name, target_list, repressor_list, activator_list, num_proc=2, verbose=False):
+def run_lem(dataset, target_list, repressor_list, activator_list, num_proc=2, verbose=False):
     '''
     Run LEMpy on a time series dataset, specifying what genes are targets, transcriptional repressors and transcription activators.
     ** Gene names must be in the time series dataset. **
 
-    dataset_name: The name of the time series dataset. This name is taken from the column Dataset in the Data Table of Contents. 
+    dataset: The time series dataset as a dataframe. This dataframe must be the same as was used in the periodicity algorithms. 
     target_list: a list of gene names which LEM will treat as targets
     repressor_list: a list of gene names which LEM will treat as transcriptional repressors
     activator_list: a list of gene names which LEM will treat as transcription activators
@@ -112,25 +112,24 @@ def run_lem(dataset_name, target_list, repressor_list, activator_list, num_proc=
 
     '''
 
-
     datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
-    if '.tsv' not in dataset_name:
-        dataset_name = dataset_name + '.tsv'
+    tmp_data_file = f'../tmp/tmp_{datetimestr}.tsv'
+    dataset.to_csv(tmp_data_file, sep='\t')
 
-    user_dict = {'data_files':[os.path.join(DATADIR, dataset_name)],
+    user_dict = {'data_files':[tmp_data_file],
                 'num_proc':num_proc,
                 'verbose':verbose}
 
     user_config = ConfigObj(user_dict)
-    full_lem_config = gen_lempy_config(user_config, dataset_name, target_list, repressor_list, activator_list, datetimestr)
+    full_lem_config = gen_lempy_config(user_config, tmp_data_file, target_list, repressor_list, activator_list, datetimestr)
     os.makedirs(os.path.split(full_lem_config.filename)[0])
     full_lem_config.write()
 
     lempy_path = '../src/lempy/lempy.py'
     full_cmd = ['mpiexec', '-n', str(num_proc), 'python', lempy_path, full_lem_config.filename]
     
-    print(f'-- Running LEMpy on dataset {dataset_name}')
+    print(f'-- Running LEMpy on dataset {tmp_data_file}')
 
     submit_cmd = subprocess.Popen(full_cmd,
                                 stdout=subprocess.PIPE, 
@@ -143,6 +142,7 @@ def run_lem(dataset_name, target_list, repressor_list, activator_list, num_proc=
     str_output = output.decode("utf-8").split('\n')
     # print(str_output)
     if len(str_error) > 1:
+        os.remove(tmp_data_file)
         print(f'-- Error:')
         [print(e) for e in str_error]
     else:
@@ -168,6 +168,7 @@ def run_lem(dataset_name, target_list, repressor_list, activator_list, num_proc=
         all_target_df = pd.concat(target_dfs)
         all_localmin_df = pd.concat(localmin_dfs)
 
+        os.remove(tmp_data_file)
         return all_scores_df, all_target_df, all_localmin_df
 
 
