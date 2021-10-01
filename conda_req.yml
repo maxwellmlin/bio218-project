@@ -19,6 +19,7 @@ dependencies:
   - nb_conda_kernels
   - ipykernel
   - nodejs
+  - ipycytoscape
   - pip:
       - -e src/pydl
       - -e src/pyjtk

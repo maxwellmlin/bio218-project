@@ -24,7 +24,7 @@ haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
 
 def view_data_toc():
     '''Print the Dataset Table of Contents file'''
-    toc_df = pd.read_csv(f'{DATADIR}/dataset_TOC.csv', index_col=0, comment='#', dtype=str)
+    toc_df = pd.read_csv(os.path.join(DATADIR, 'dataset_TOC.csv'), index_col=0, comment='#', dtype=str)
     return toc_df
 
 
@@ -36,7 +36,7 @@ def load_dataset(dataset_name):
     '''
     if '.tsv' not in dataset_name:
         dataset_name = dataset_name + '.tsv'
-    return pd.read_csv(f'{DATADIR}/{dataset_name}', index_col=0, sep='\t', comment='#')
+    return pd.read_csv(os.path.join(DATADIR, dataset_name), index_col=0, sep='\t', comment='#')
 
 
 def load_results(periodicity_results_name):
@@ -47,7 +47,7 @@ def load_results(periodicity_results_name):
     '''
     if '.tsv' not in periodicity_results_name:
         periodicity_results_name = periodicity_results_name + '.tsv'
-    return pd.read_csv(f'{DATADIR}/{periodicity_results_name}', index_col=0, sep='\t', comment='#')
+    return pd.read_csv(os.path.join(DATADIR, periodicity_results_name), index_col=0, sep='\t', comment='#')
 
 
 def convert_periods_to_str(periods):
@@ -67,7 +67,7 @@ def convert_periods_to_str(periods):
     return periods
 
 
-def run_pyjtk(dataset, periods, is_tmp=False):
+def run_pyjtk(dataset, periods, filename, is_tmp=False):
     '''
     Use pyJTK to analyze a time series dataset.
     Periods is a list of periods to use in pyJTK.
@@ -81,17 +81,19 @@ def run_pyjtk(dataset, periods, is_tmp=False):
     pyjtk_path = '../src/pyjtk/pyjtk.py'
     
     if is_tmp:
-        data_path = dataset
-        dataset = ntpath.basename(dataset).split('tmp')[0][:-1]
+        data_path = filename
+        filename = ntpath.basename(data_path).split('__')[0]
     else:
-        data_path = f'../datasets/{dataset}.tsv'
+        datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        data_path = f'../tmp/{filename}__{datetimestr}.tsv'
+        dataset.to_csv(data_path, sep='\t')
     
-    outfile = f'{dataset}_pyjtk_{datetimestr}.tsv'
+    outfile = f'{filename}_pyjtk_{datetimestr}.tsv'
     outdir = f'../results/{outfile}'
     
     full_cmd = ['python', pyjtk_path, data_path, '-T', periods, '-o', outdir]
     
-    print(f'-- Running pyJTK on dataset {dataset}, testing period(s) of {periods}')
+    print(f'-- Running pyJTK on dataset, testing period(s) of {periods}')
     
     submit_cmd = subprocess.Popen(full_cmd, 
                                   stdout=subprocess.PIPE, 
@@ -108,10 +110,13 @@ def run_pyjtk(dataset, periods, is_tmp=False):
 
     print(f'-- Results saved as {outfile} in the results directory')
     
+    if not is_tmp:
+        os.remove(data_path)
+
     return outdir
 
 
-def run_pydl(dataset, period, numb_reg=1, numb_per=1, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
+def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
     '''
     Use pyDL to analyze a time series dataset.
     Period is single period to use in pyDL.
@@ -128,18 +133,20 @@ def run_pydl(dataset, period, numb_reg=1, numb_per=1, log_trans=True, verbose=Fa
     pydl_path = '../src/pydl/pydl.py'
     
     if is_tmp:
-        data_path = dataset
-        dataset = ntpath.basename(dataset).split('tmp')[0][:-1]
+        data_path = filename
+        filename = ntpath.basename(data_path).split('__')[0]
     else:
-        data_path = f'../datasets/{dataset}.tsv'
+        datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+        data_path = f'../tmp/{filename}__{datetimestr}.tsv'
+        dataset.to_csv(data_path, sep='\t')
         
-    outfile = f'{dataset}_pydl_{datetimestr}.tsv'
+    outfile = f'{filename}_pydl_{datetimestr}.tsv'
     outdir = f'../results/{outfile}'
     
     system = platform.system()
     if system == 'Windows' and windows_issues:
         print('** IMPORTANT: System was detected as Windows. ** There is currently an issue running pyDL on Windows through the Jupyter notebook. Two commands will be printed below. Go into the terminal and change into the biological_clocks_class folder as described in the README.Then copy and paste the following commands. ')
-        print(f' -- Printing command for pyDL on dataset {dataset}, testing period of {period}:')
+        print(f' -- Printing command for pyDL on dataset, testing period of {period}:')
         pydl_path_windows = pydl_path.replace("../", "")
         data_path_windows = data_path.replace("../", "")
         outdir_windows = outdir.replace("../", "")
@@ -148,7 +155,7 @@ def run_pydl(dataset, period, numb_reg=1, numb_per=1, log_trans=True, verbose=Fa
         print (command0)
         print(command)
     else:
-        print(f'-- Running pyDL on dataset {dataset}, testing a period of {period}')
+        print(f'-- Running pyDL on dataset, testing a period of {period}')
 
         full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir, 
                     '-r', str(numb_reg), 
@@ -173,6 +180,9 @@ def run_pydl(dataset, period, numb_reg=1, numb_per=1, log_trans=True, verbose=Fa
 
         print(f'-- Results saved as {outfile} in the results directory')
     
+    if not is_tmp:
+        os.remove(data_path)
+
     return outdir
 
 
@@ -246,7 +256,7 @@ def relabel_duplicates(dataset):
     return df
 
 
-def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False, drop_method='max', windows_issues = False):
+def run_periodicity(dataset, pyjtk_periods, pydl_periods, filename, windows_issues = False):
     '''
     Run pyJTK and pyDL on a single dataset.
     pyjtk_periods is a list of periods to use in pyJTK
@@ -255,27 +265,19 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     drop_method specifies the method to use for determining which duplicates to drop.
     '''
     
-    print(f'Running periodicity algorithms on {dataset}')
+    print(f'Running periodicity algorithms')
     
-    print('Loading data.')
-    df = load_dataset(dataset)
+    datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    data_path = f'../tmp/{filename}__{datetimestr}.tsv'
+    dataset.to_csv(data_path, sep='\t')
     
-    if drop_duplicates:
-        print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
-        df = remove_duplicates(df, drop_method)
-    else:
-        print('Relabeling duplicates.')
-        df = relabel_duplicates(df)
-    
-    tmp_file = f'../tmp/{dataset}_tmp.tsv'
-    
-    df.to_csv(tmp_file, sep='\t')
+    dataset.to_csv(data_path, sep='\t')
     
     print('Running pyJTK')
-    pyjtk_results_path = run_pyjtk(tmp_file, pyjtk_periods, is_tmp=True)
+    pyjtk_results_path = run_pyjtk(data_path, pyjtk_periods, data_path, is_tmp=True)
     
     print('Running pyDL')
-    pydl_results_path = run_pydl(tmp_file, pydl_periods, is_tmp=True, windows_issues=windows_issues)
+    pydl_results_path = run_pydl(data_path, pydl_periods, data_path, is_tmp=True, windows_issues=windows_issues)
     
     system = platform.system()
     if system == 'Windows' and windows_issues:
@@ -287,7 +289,7 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, drop_duplicates=False,
     else:
         pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
         pydl_results = pd.read_csv(pydl_results_path, sep='\t', index_col=0, comment='#')
-        os.remove(tmp_file)
+        os.remove(data_path)
     
     return pjyk_results, pydl_results
 
@@ -407,7 +409,7 @@ def normalize_data(dataset):
     return pd.DataFrame(z_pyjtk, index=dataset.index, columns=dataset.columns)
 
 
-def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes=1000, threshhold=None, threshhold_below=True, handle_duplicates=False, drop_duplicates=False, drop_method='max'):
+def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes=1000, threshhold=None, threshhold_below=True):
     '''
     Plot genes from a single dataset in a heatmap ordered by first period maximum. Genes included will depend on the top_genes or threshhold values. Top_genes defaults to 1000, so by default the top 1000 genes based off the
     supplied periodicity result will be plotted.
@@ -424,21 +426,6 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     drop_method specifies the method to use for determining which duplicates to drop.
     '''
     
-    if type(dataset) == str: 
-        print('Loading data.')
-        df = load_dataset(dataset)
-        
-        if handle_duplicates:
-            if drop_duplicates:
-                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
-                df = remove_duplicates(df, drop_method)
-            else:
-                print('Relabeling duplicates.')
-                df = relabel_duplicates(df)
-    else:
-        df = dataset
-        dataset = 'Time Series Data'
-    
     if top_genes is not None and threshhold is None:
         gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
     elif top_genes is not None and threshhold is not None:
@@ -449,8 +436,8 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
             gene_list = get_genelist_from_threshhold(periodicity_result, filtering_column, threshhold, threshhold_below)
         else:
             print('Either top_genes or threshhold must be not None.')
-    df = df.reindex(gene_list)
-    data = df.loc[gene_list]
+    dataset = dataset.reindex(gene_list)
+    data = dataset.loc[gene_list]
     if len(gene_list)>75:
         yticks = False
     else:
@@ -473,8 +460,8 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     if top_genes is not None:
         subtitle = "Filtered by " + filtering_column +": top " + str(top_genes) +" genes\n"
     elif threshhold is not None:
-        subtitle = dataset + "Filtered by " + filtering_column +" with threshold = "+ str(threshhold) +"\n"
-    title = dataset
+        subtitle = "Filtered by " + filtering_column +" with threshold = "+ str(threshhold) +"\n"
+    title = 'Time Series Data'
     plt.title(subtitle, fontsize = 13, y = .96)
     plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
     fig.subplots_adjust(top = 0.90)
@@ -483,7 +470,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     plt.show()
 
 
-def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
+def plot_heatmap_in_supplied_order(dataset, order):
     '''
     Plot genes from a single dataset in a heatmap ordered by the supplied order.
     
@@ -492,42 +479,19 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
     drop_duplicates, when True, will drop duplicates in the dataset based on drop_method. When False, duplicates are relabeled to prevent pyDL from failing.
     drop_method specifies the method to use for determining which duplicates to drop.
     '''
-    
-    if type(dataset) == str: 
-        print('Loading data.')
-        df = load_dataset(dataset)
-        
-        if handle_duplicates:
-            if drop_duplicates:
-                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
-                df = remove_duplicates(df, drop_method)
-            else:
-                print('Relabeling duplicates.')
-                df = relabel_duplicates(df)
-    else:
-        df = dataset
-        dataset = 'Time Series Data'
-
-    if handle_duplicates:
-        if drop_duplicates:
-            print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
-            df = remove_duplicates(df, drop_method)
-        else:
-            print('Relabeling duplicates.')
-            df = relabel_duplicates(df)
             
     if len(order)>100:
         yticks = False
     else:
         yticks = True
 
-    df = df.reindex(order)
-    data = df.loc[order]
+    dataset = dataset.reindex(order)
+    data = dataset.loc[order]
     z_pyjtk_df = normalize_data(data)
 
     fig = plt.figure(figsize = (8,8))
     subtitle = "Ordered by supplied genelist"
-    title = dataset
+    title = 'Time Series Data'
     plt.title(subtitle, fontsize = 13, y = .995)
     plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
     fig.subplots_adjust(top = 0.90)
@@ -536,29 +500,14 @@ def plot_heatmap_in_supplied_order(dataset, order, handle_duplicates = False, dr
     plt.show()
 
 
-def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, handle_duplicates = False, drop_duplicates=False, drop_method='max'):
+def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False):
     '''
     Plots supplied genes in the genelist from a single dataset in lineplots. Can only plot between 1 and 10 genes.
 
     '''
     
-    if type(dataset) == str: 
-        print('Loading data.')
-        df = load_dataset(dataset)
-        
-        if handle_duplicates:
-            if drop_duplicates:
-                print(f'Dropping duplicates by the {drop_method} method in remove_duplicates().')
-                df = remove_duplicates(df, drop_method)
-            else:
-                print('Relabeling duplicates.')
-                df = relabel_duplicates(df)
-    else:
-        df = dataset
-        dataset = 'Time Series Data'
-    
     if norm_data:
-        df = normalize_data(df)
+        dataset = normalize_data(dataset)
 
     if len(gene_list) <=5 and len(gene_list)>0:
         num_rows = 1
@@ -583,11 +532,11 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, handle_d
         top_size = 0.9
     
     fig.subplots_adjust(hspace=0.3, wspace=0.3, top = top_size)
-    plt.suptitle(dataset, fontsize=15, y = 0.99)    
+    plt.suptitle('Time Series Data', fontsize=15, y = 0.99)    
 
     for i, genename in enumerate(gene_list):
         plt.subplot(num_rows, num_columns, i+1)
-        sns.lineplot(x = df.columns, y = df.loc[genename,:]).set_title(genename)
+        sns.lineplot(x = dataset.columns, y = dataset.loc[genename,:]).set_title(genename)
     plt.show()
     
 
