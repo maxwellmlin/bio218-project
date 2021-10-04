@@ -1,10 +1,21 @@
 ﻿Organism,Process,Condition,Sampling Frequency,Sampling Duration,Dataset,Type,PMID
-Saccharomyces cerevisiae,Cell Cycle,Wild-type replicate 1,16 min,254 min,Scerevisiae_WT1_Microarray,Microarray,18463633
-Saccharomyces cerevisiae,Cell Cycle,Wild-type replicate 2,16 min,262 min,Scerevisiae_WT2_Microarray,Microarray,18463633
+Saccharomyces cerevisiae,Cell Cycle,Wild-type replicate 1,16 min,254 min,Scerevisiae_WT_r1_Microarray,Microarray,18463633
+Saccharomyces cerevisiae,Cell Cycle,Wild-type replicate 2,16 min,262 min,Scerevisiae_WT_r2_Microarray,Microarray,18463633
 Saccharomyces cerevisiae,Cell Cycle,Wild-type,5 min,245 min,Scerevisiae_RNAseq,RNAseq,27918582
+Saccharomyces cerevisiae,Cell Cycle,No APC activity replicate 1,20 min,300 min,Scerevisiae_noAPC_r1,Microarray,25200947
+Saccharomyces cerevisiae,Cell Cycle,No APC activity replicate 2,20 min,360 min,Scerevisiae_noAPC_r2,Microarray,25200947
+Saccharomyces cerevisiae,Cell Cycle,No cyclin-CDK activity replicate 1,16 min,262 min,Scerevisiae_noCDK_r1,Microarray,18463633
+Saccharomyces cerevisiae,Cell Cycle,No cyclin-CDK activity replicate 2,16 min,254 min,Scerevisiae_noCDK_r2,Microarray,18463633
+Saccharomyces cerevisiae,Cell Cycle,DNA Damage Checkpoint activated replicate 1,Uneven,260 min,Scerevisiae_DRC_r1,Microarray,25200947
+Saccharomyces cerevisiae,Cell Cycle,DNA Damage Checkpoint activated replicate 2,Uneven,260 min,Scerevisiae_DRC_r2,Microarray,25200947
+Saccharomyces cerevisiae,Cell Cycle,Perturbed DNA Damage Checkpoint activated + no APC activity replicate 1,18 min,360 min,Scerevisiae_xDRC_noAPC_r1,Microarray,25200947
+Saccharomyces cerevisiae,Cell Cycle,Perturbed DNA Damage Checkpoint activated + no APC activity replicate 2,18 min,360 min,Scerevisiae_xDRC_noAPC_r2,Microarray,25200947
+Saccharomyces cerevisiae,Cell Cycle,Spindle Assembly Checkout activated replicate 1,15 min,245 min,Scerevisiae_SpAC_r1,Microarray,25200947
+Saccharomyces cerevisiae,Cell Cycle,Spindle Assembly Checkout activated replicate 2,15 min,245 min,Scerevisiae_SpAC_r2,Microarray,25200947
 Cryptococcus neoformans,Cell Cycle,Wild-type,10 min,230 min,Cneoformans_RNAseq,RNAseq,27918582
-Homo Sapiens,Cell Cycle,K562 Wild-type,2 hr,48 hr,Hsapiens_K562,RNAseq,NA
-Homo Sapiens,Cell Cycle,HeLA Wild-type,1 hr,47 hr,Hsapiens_HeLa,Microarray,12058064
+Homo sapiens,Cell Cycle,K562 cell line,2 hr,48 hr,Hsapiens_K562,RNAseq,NA
+Homo sapiens,Cell Cycle,HeLa cell line,1 hr,47 hr,Hsapiens_HeLa,Microarray,12058064
+Homo sapiens,Cell Cycle,HeCat cell line,3 hr,33 hr,Hsapiens_HeCat,Microarray,23325852
 Ophiocordyceps kimflemingiae,Circadian,light-dark,4 hr,48 hr,Okimflemingiae_DD_RPKM,RNAseq,29099875
 Ophiocordyceps kimflemingiae,Circadian,dark-dark,4 hr,48 hr,Okimflemingiae_LD_RPKM,RNAseq,29099875
 Phaeodactylum tricornutum,Circadian,light-dark,Uneven,27 hr,Ptricornutum_LD,Microarray,23209127
