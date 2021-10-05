@@ -20,7 +20,7 @@ ____
     * **For Windows Users**, you will need to download software called Putty. Use this link -[Putty download page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)- to download the 64-bit x86 version by clicking `putty-64bit-0.76-installer.msi`. Install the software.
  ![putty_download](static/putty_download.png)
         * Once Putty is installed, open the software. In the `Hostname` field, enter your VM's address. This address can be found on your VM's management page, in the General Information box and next to Hostname, as shown in Step 4's image.
-        * Make sure SSH is selected and then click `open` and then click `yes`. A new window will open. In this new window, enter you netID and hit enter. Next, enter in your netID password. **NOTE: you will not be able to see what you type. This is suppose to happen.**
+        * Make sure SSH is selected and then click `open` and then click `Accept`. A new window will open. In this new window, enter your netID and hit enter. Next, enter in your netID password and hit enter. **NOTE: you will not be able to see what you type for your password. This is suppose to happen.**
     * **For Mac or Linux Users**, SSH is preinstalled and can be used from within the Terminal. Open up a terminal and enter `ssh netid@VM_address`, where *netid* is your netID and *VM_hostname* is your VM's address. This address can be found on your VM's management page, in the General Information box and next to Hostname, as shown in Step 4's image.
         * After typing in the above command, hit enter. You will be asked a yes/no question, type in `yes` and hit enter.
 ____  
@@ -30,8 +30,9 @@ ____
     $ sudo apt-get install curl
     $ curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
     $ bash Miniconda3-latest-Linux-x86_64.sh
+    $ source .bashrc
     ```
-    * The last command will have a few yes/no questions, answer `yes` to all of them.
+    * The second to last command will have a few yes/no questions as well as places to hit `ENTER`, answer `yes` or hit `ENTER` to all of them.
 ___
 7) You will need to create a Personal Access Token on GitLab. If you do not already have a gitlab account, you will need to make one first. Go to [GitLab](https://gitlab.com/) to make an account.
     * Logged into your GitLab account, click your profile [1] go to `Preferences` [2].
