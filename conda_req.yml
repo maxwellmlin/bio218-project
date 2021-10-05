@@ -4,6 +4,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.7
+  - R=3.6
   - mpi4py=3.0.3
   # - openmpi=4.0.2
   - numpy=1.16
@@ -20,8 +21,6 @@ dependencies:
   - ipykernel
   - nodejs
   - ipycytoscape
-  - astropy=4.0.2
   - pip:
       - -e src/pydl
       - -e src/pyjtk
-      - pandarallel
