@@ -27,10 +27,16 @@ Requirements
   ```
 ### Gitlab ([www.gitlab.com](https://www.gitlab.com))
 * You will also need to create a Gitlab account, which you can do [here](https://gitlab.com/users/sign_up). 
-* You will likely need to create a Personal Access Token (PAT) for use during the Installation step. Steps for creating a PAT can be found [here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html). 
+* You will likely need to create a Personal Access Token (PAT) for use during the Installation step. Follow the steps below to make a Personal Access Token. **IMPORTANT: You will need this token in the Installation instructions below. When you make it, save it some where temporary.**
+    * Logged into your GitLab account, click your profile [1] go to `Preferences` [2].
+    ![gitlab_pref](VM_install_guide/static/gitlab_pref.png)
+    * Go to the `Access Tokens` [1]. Enter `duke-vm` for the Token name [2] and click the box next to `api` [3]. Click `Create personal access token` [4].
+    ![gitlab_pat](VM_install_guide/static/git_personal_access_token.png)
+    * You will be directed to a new page. Copy the text in the box under `Your new personal access token`. **IMPORTANT: Again, you will need this token in the Installation instructions below. Leave this page open. If you close this page, you will not be able to get your token back. If you do close it, you will need to create a new token again.**
+    * The above will be sufficient for this course, but to learn more on creating a PAT, click [here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html). 
 
 
-Installation
+<br>Installation
 ------------
 
 * Clone the repository onto your machine by entering the following command in your terminal. Note that if you have a Windows machine, this command should be run in a cmd (Command Prompt) terminal instead of the Conda terminal. To open cmd, see [here](https://www.howtogeek.com/235101/10-ways-to-open-the-command-prompt-in-windows-10/#:~:text=Press%20Windows%2BR%20to%20open,open%20an%20administrator%20Command%20Prompt).
@@ -38,7 +44,7 @@ Installation
   $ git clone https://gitlab.com/haaselab/biological_clocks_class.git
   ```
 * You will be prompted to enter your Gitlab username and password. Enter your username but for the password use your PAT.
-* Change into the `biological_clocks_class` directory, create a conda environment and install packages. To learn more about the command line and commands such as "cd" (change directory) below, see this [crash course](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Understanding_client-side_tools/Command_line). 
+* Change into the `biological_clocks_class` directory, create a conda environment and install packages. To learn more about the command line and commands such as "cd" (change directory) below, see this [crash course](https://developer.mozilla.org/en-US/docs/Learn/Tools_and_testing/Understanding_client-side_tools/Command_line).
   ```
   $ cd biological_clocks_class
   $ git submodule init
@@ -48,14 +54,24 @@ Installation
   $ ipython kernel install --user --name=BioClocksClass
   ```
 
-Tools
+<br>Tools
 ------------
-* pyJTK
-* pyDL
-* DLxJTK
-* LEM
+* These are installed during Installation
+<table>
+    <thead>
+      <tr>
+        <th>Tool</th><th>Description</th><th>PMID</th><th>Repo Link</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>pyJTK</td><td>Correlates a gene’s expression profile to that of a reference curve with known periodicity properties, and computes a significance of that correlation.</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/20876817/">20876817</a></td><td><a href="https://gitlab.com/biochron/pyjtk">GitLab</a></td></tr>
+      <tr><td>pyDL</td><td>Measures how periodic a signal is at a specified period by quantifying and combining statistical measures of gene expression periodicity and strength of regulation.</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/15513999/">15513999</a></td><td><a href="https://gitlab.com/biochron/pydl">GitLab</a></td></tr>
+      <tr><td>The Local Edge Machine (LEM)</td><td>A Bayesian network inference method which ranks potential models of gene interactions to identify the most likely regulator(s) and modes of regulation (activation or repression) of a given target gene using time series gene expression data. </td><td><a href="https://pubmed.ncbi.nlm.nih.gov/27760556/">27760556</a></td><td><a href="https://gitlab.com/biochron/lempy">GitLab</a></td></tr>
+    </tbody>
+</table>
 
-Datasets
+_________________________
+<br>Datasets
 ------------
 
 Below is a table describing the datasets available within this repository. The last column, titled PMID, contains the pubmed ID for the article the dataset is associated with. Clicking the ID will link you to the article on Pubmed.
@@ -98,39 +114,8 @@ Below is a table describing the datasets available within this repository. The l
             <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 09</td><td>3 hr</td><td>48 hr</td><td>Pvivax_09</td><td>RNAseq</td><td>nan</td></tr></tbody>
   </table>
 
-Can't or don't want to install on your own machine? Let's use a virtual machine courtesy of Duke University.
-----
-https://vcm.duke.edu/
+______________________
 
-Reserve a VM
-
-ubunto 20
-
-agree
-
-wait for email
-
-putty (Windows)
-
-sudo apt-get update
-
-sudo apt-get install curl
-
-curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-
-bash Miniconda3-latest-Linux-x86_64.sh
-  - yes to all
-
-create access token
-
-clone repo using as password
-
-$ cd biological_clocks_class
-$ git submodule init
-$ git submodule update
-$ conda env create -f conda_req.yml
-$ 
-$ ipython kernel install --user --name=BioClocksClass
 
 <!-- Troubleshooting -->
 <!-- ------------ -->

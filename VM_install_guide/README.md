@@ -19,8 +19,8 @@ ____
 5) Connect to the VM using SSH.
     * **For Windows Users**, you will need to download software called Putty. Use this link -[Putty download page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)- to download the 64-bit x86 version by clicking `putty-64bit-0.76-installer.msi`. Install the software.
  ![putty_download](static/putty_download.png)
-        * Once Putty is installed, open the software. In the `Hostname` field, enter your VM's address. This address can be found on your VM's management page, in the General Information box and next to Hostname, as shown in Step 4's image.
-        * Make sure SSH is selected and then click `open` and then click `Accept`. A new window will open. In this new window, enter your netID and hit enter. Next, enter in your netID password and hit enter. **NOTE: you will not be able to see what you type for your password. This is suppose to happen.**
+        * Once Putty is installed, open the software. In the `Hostname` field, enter your VM's address [1]. This address can be found on your VM's management page, in the General Information box and next to Hostname, as shown in Step 4's image. Make sure SSH is selected [2] and then click `open` [3] and then click `Accept`. A new window will open. In this new window, enter your netID and hit enter. Next, enter in your netID password and hit enter. **NOTE: you will not be able to see what you type for your password. This is suppose to happen.**
+        ![putty_gui](static/putty_gui.png)
     * **For Mac or Linux Users**, SSH is preinstalled and can be used from within the Terminal. Open up a terminal and enter `ssh netid@VM_address`, where *netid* is your netID and *VM_hostname* is your VM's address. This address can be found on your VM's management page, in the General Information box and next to Hostname, as shown in Step 4's image.
         * After typing in the above command, hit enter. You will be asked a yes/no question, type in `yes` and hit enter.
 ____  
@@ -56,10 +56,16 @@ ___
     $ conda activate BioClocksClass
     $ ipython kernel install --user --name=BioClocksClass
     ```
-____
-10) Since we are in a VM, we need to activate Jupyter Lab using the following command (Remember to have your BioClocksClass conda environment activated first):
-    ```
+
+_______
+Accessing Jupyter Lab
+----
+Since we are in a VM, we need to activate Jupyter Lab using the following command (Remember to have your BioClocksClass conda environment activated first):
+
     $ jupyter lab --ip 0.0.0.0 --no-browser
-    ```
-    * Several messages will be printed in the terminal. The one you care about is the URL that has your VM's address in it. Copy the entire URL and enter it into your browser. In the image below, this URL would be the second to last URL.
-    ![jupyter_lab](static/jupyter_lab_url.png)
+    
+* Several messages will be printed in the terminal. The one you care about is the URL that has your VM's address in it. Copy the entire URL and enter it into your browser. In the image below, this URL would be the second to last URL.
+![jupyter_lab](static/jupyter_lab_url.png)
+
+______
+Moving data between your computer and your VM
