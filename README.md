@@ -44,6 +44,7 @@ Installation
   $ git submodule init
   $ git submodule update
   $ conda env create -f conda_req.yml
+  $ conda activate BioClocksClass
   $ ipython kernel install --user --name=BioClocksClass
   ```
 
@@ -101,5 +102,35 @@ Can't or don't want to install on your own machine? Let's use a virtual machine 
 ----
 https://vcm.duke.edu/
 
-Troubleshooting
-------------
+Reserve a VM
+
+ubunto 20
+
+agree
+
+wait for email
+
+putty (Windows)
+
+sudo apt-get update
+
+sudo apt-get install curl
+
+curl -O https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+bash Miniconda3-latest-Linux-x86_64.sh
+  - yes to all
+
+create access token
+
+clone repo using as password
+
+$ cd biological_clocks_class
+$ git submodule init
+$ git submodule update
+$ conda env create -f conda_req.yml
+$ 
+$ ipython kernel install --user --name=BioClocksClass
+
+<!-- Troubleshooting -->
+<!-- ------------ -->

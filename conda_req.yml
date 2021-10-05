@@ -20,6 +20,7 @@ dependencies:
   - ipykernel
   - nodejs
   - ipycytoscape
+  - astropy=4.0.2
   - pip:
       - -e src/pydl
       - -e src/pyjtk

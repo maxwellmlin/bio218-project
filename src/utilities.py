@@ -12,6 +12,8 @@ import ipycytoscape
 import seaborn as sns
 from configobj import ConfigObj
 import matplotlib.pyplot as plt
+from pandarallel import pandarallel
+from astropy.timeseries import LombScargle as ls
 
 
 DATADIR = '../datasets'
@@ -509,6 +511,7 @@ def run_pyjtk(dataset, periods, filename, is_tmp=False):
     return outdir
 
 
+# def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=10000, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
 def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, verbose=False, is_tmp=False, windows_issues = False):
     '''
     Use pyDL to analyze a time series dataset.
@@ -579,10 +582,51 @@ def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, 
     return outdir
 
 
-def run_periodicity(dataset, pyjtk_periods, pydl_periods, filename, windows_issues = False):
+def lomb_scargle(data_array, timepoint_array, period_array):
+
+    frequencies = [(1/p) for p in period_array]
+    ls_results = ls(timepoint_array, data_array, normalization='standard', center_data=True)
+    power = ls_results.power(frequencies)
+    false_alarm_prob = ls_results.false_alarm_probability(power.max(), method='bootstrap')
+    best_period = period_array[np.argmax(power, axis=0)]
+    return false_alarm_prob, best_period
+
+
+def run_lomb_scargle(dataset, periods, filename, numb_jobs=2, return_path=False):
+    
+    pandarallel.initialize(nb_workers=numb_jobs)
+
+    timepoints = np.asarray([int(t) for t in dataset.columns])
+
+    print(f'-- Running Lomb-Scargle on dataset, testing period(s) of {periods}')
+    start_time = end_time = datetime.datetime.now()
+    lomb_scargle_results = dataset.parallel_apply(lomb_scargle, args=(timepoints, np.asarray(periods)), axis=1, result_type='expand')
+    end_time = datetime.datetime.now()
+    lomb_scargle_results.columns = ['False_alarm_probability', 'Period']
+
+    datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+    datetimestr_out = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    outfile = f'{filename}_LS_{datetimestr}.tsv'
+    outdir = f'../results/{outfile}'
+
+    with open(outdir, 'w') as out_file:
+        out_file.write('# Lomb-Scargle periodicity scores computed on %s\n' % datetimestr_out)
+        out_file.write('# Calculation time:  %f seconds\n' % (end_time - start_time).total_seconds())
+        out_file.write('# Period(s) of oscillation tested:  %s\n' % periods)
+        lomb_scargle_results.to_csv(out_file, sep='\t')
+
+    print(f'-- Results saved as {outfile} in the results directory')
+
+    if return_path:
+        return outdir
+    else:
+        return lomb_scargle_results
+
+
+def run_periodicity(dataset, pyjtk_ls_periods, pydl_periods, filename, windows_issues = False):
     '''
     Run pyJTK and pyDL on a single dataset.
-    pyjtk_periods is a list of periods to use in pyJTK
+    pyjtk_ls_periods is a list of periods to use in pyJTK and in Lomb-Scargle
     pydl_periods is a single period to use in pyDL
     drop_duplicates, when True, will drop duplicates in the dataset based on drop_method. When False, duplicates are relabeled to prevent pyDL from failing.
     drop_method specifies the method to use for determining which duplicates to drop.
@@ -594,13 +638,14 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, filename, windows_issu
     data_path = f'../tmp/{filename}__{datetimestr}.tsv'
     dataset.to_csv(data_path, sep='\t')
     
-    dataset.to_csv(data_path, sep='\t')
-    
     print('Running pyJTK')
-    pyjtk_results_path = run_pyjtk(data_path, pyjtk_periods, data_path, is_tmp=True)
+    pyjtk_results_path = run_pyjtk(data_path, pyjtk_ls_periods, data_path, is_tmp=True)
     
     print('Running pyDL')
     pydl_results_path = run_pydl(data_path, pydl_periods, data_path, is_tmp=True, windows_issues=windows_issues)
+
+    print('Running Lomb-Scargle')
+    ls_results = run_lomb_scargle(dataset, pyjtk_ls_periods, filename)
     
     system = platform.system()
     if system == 'Windows' and windows_issues:
@@ -614,7 +659,7 @@ def run_periodicity(dataset, pyjtk_periods, pydl_periods, filename, windows_issu
         pydl_results = pd.read_csv(pydl_results_path, sep='\t', index_col=0, comment='#')
         os.remove(data_path)
     
-    return pjyk_results, pydl_results
+    return pjyk_results, pydl_results, ls_results
 
 
 def dlxjtk_func(row):
