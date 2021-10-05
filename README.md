@@ -57,6 +57,7 @@ Requirements
 <br>Tools
 ------------
 * These are installed during Installation
+* For a comparative analysis of various periodicity algorithms, inlcuding pyJTK, pyDL and Lomb-Scargle, read this [article](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4471443/).
 <table>
     <thead>
       <tr>
@@ -66,6 +67,7 @@ Requirements
     <tbody>
       <tr><td>pyJTK</td><td>Correlates a gene’s expression profile to that of a reference curve with known periodicity properties, and computes a significance of that correlation.</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/20876817/">20876817</a></td><td><a href="https://gitlab.com/biochron/pyjtk">GitLab</a></td></tr>
       <tr><td>pyDL</td><td>Measures how periodic a signal is at a specified period by quantifying and combining statistical measures of gene expression periodicity and strength of regulation.</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/15513999/">15513999</a></td><td><a href="https://gitlab.com/biochron/pydl">GitLab</a></td></tr>
+      <tr><td>Lomb-Scargle</td><td>Measures the correspondence to sinusoidal curves and determines their statistical significance. Can handle unevenly sampled data.</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/16303799/">16303799</a></td><td>N/A</td></tr>
       <tr><td>The Local Edge Machine (LEM)</td><td>A Bayesian network inference method which ranks potential models of gene interactions to identify the most likely regulator(s) and modes of regulation (activation or repression) of a given target gene using time series gene expression data. </td><td><a href="https://pubmed.ncbi.nlm.nih.gov/27760556/">27760556</a></td><td><a href="https://gitlab.com/biochron/lempy">GitLab</a></td></tr>
     </tbody>
 </table>
