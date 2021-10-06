@@ -19,7 +19,9 @@ Homo sapiens,Cell Cycle,HeCat cell line,3 hr,33 hr,Hsapiens_HeCat,Microarray,233
 Ophiocordyceps kimflemingiae,Circadian,light-dark,4 hr,48 hr,Okimflemingiae_DD_RPKM,RNAseq,29099875
 Ophiocordyceps kimflemingiae,Circadian,dark-dark,4 hr,48 hr,Okimflemingiae_LD_RPKM,RNAseq,29099875
 Phaeodactylum tricornutum,Circadian,light-dark,Uneven,27 hr,Ptricornutum_LD,Microarray,23209127
-Mus musculus,Circadian,dark-dark Liver ,2 hr,48 hr,Mmusculus_liver_DDHC,RNAseq,25349387
+Mus musculus,Circadian,dark-dark Liver ,2 hr,48 hr,Mmusculus_liver_DDHC,Microarray,25349387
+Mus musculus,Circadian,dark-dark Kidney ,2 hr,48 hr,Mmusculus_kidney_DDHC,Microarray,25349388
+Mus musculus,Circadian,dark-dark Lung ,2 hr,48 hr,Mmusculus_lung_DDHC,Microarray,25349389
 Arabidopsis thaliana,Circadian,light-dark,4 hr,48 hr,Athaliana_LD,Microarray,18248097
 Arabidopsis thaliana,Circadian,light-light,4 hr,48 hr,Athaliana_LL,Microarray,18248097
 Kalanchoe fedtschenkoi,Circadian,light-dark,2 hr,48 hr,Kfedtschenkoi_LD,RNAseq,29196618
