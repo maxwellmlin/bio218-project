@@ -68,4 +68,5 @@ Since we are in a VM, we need to activate Jupyter Lab using the following comman
 ![jupyter_lab](static/jupyter_lab_url.png)
 
 ______
-Moving data between your computer and your VM
+<!-- Moving data between your computer and your VM
+---- -->
