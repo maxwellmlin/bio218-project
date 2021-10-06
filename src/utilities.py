@@ -900,7 +900,7 @@ def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_t
         outdir_windows = outdir.replace("../", "")
         command0 ='Command 1: conda activate BioClocksClass'
         command = f'Command 2: mpiexec -n 2 python {pydl_path_windows} {data_path_windows} -T {period} -o {outdir_windows} -r {numb_reg} -p {numb_per} -l {log_trans} -v {verbose}'
-        print (command0)
+        print(command0)
         print(command)
     else:
         print(f'-- Running pyDL on dataset, testing a period of {period}')
