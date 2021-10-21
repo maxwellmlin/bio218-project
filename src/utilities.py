@@ -22,7 +22,7 @@ DATADIR = '../datasets'
 def view_data_toc():
     '''
     Print the Dataset Table of Contents file
-    
+
     Returns
     -------
     data table of contents (data toc): a table describing each dataset available.
@@ -37,7 +37,7 @@ def view_data_toc():
 def load_dataset(dataset_name):
     '''
     Load a dataset into a dataframe
-    
+
     Parameters
     ----------
     dataset_name: string
@@ -51,7 +51,7 @@ def load_dataset(dataset_name):
     Examples
     --------
     >>> load_dataset('Scerevisiae_WT1_Microarray')
-    
+
     '''
 
     if '.tsv' not in dataset_name:
@@ -64,7 +64,7 @@ def load_dataset(dataset_name):
 def load_results(results_name):
     '''
     Load results from periodicity alorgithms or LEMpy into a dataframe
-    
+
     Parameters
     ----------
     results_name : string
@@ -110,7 +110,7 @@ def convert_periods_to_str(periods):
             periods = ' '.join(periods)
         else:
             periods = str(periods[0])
-            
+
     return periods
 
 
@@ -128,7 +128,7 @@ def duplicate_check(dataset):
     answer : boolean
         returns True if there are no duplicate gene names in the dataset. Returns False and tips on what to do if duplicate gene names are detected
     '''
-    
+
     if dataset.index.is_unique:
         print('This dataset has no duplicate gene names.')
         answer = True
@@ -141,7 +141,7 @@ def duplicate_check(dataset):
 
     return answer
 
-    
+
 def remove_duplicates(dataset, method):
     '''
     Removes duplicate gene names by one of two methods.
@@ -172,11 +172,11 @@ def remove_duplicates(dataset, method):
     Method 2 (average): keep the duplicate with the hightest average gene expression.
 
     '''
-    
+
     df = dataset.copy()
     df = df.reset_index()
     idx_drops = list()
-    
+
     if method == 'average':
         df[method] = df.mean(numeric_only=True, axis=1)
     elif method == 'max':
@@ -184,24 +184,24 @@ def remove_duplicates(dataset, method):
     else:
         print(f'Error: Method must be either "max" or "average". You entered "{method}".')
         return
-        
+
     for genename, expression in df.groupby('time_points'):
         if expression.shape[0] > 1:
             keep_idx = expression[method].idxmax()
             drop_idx_list = expression[expression.index != keep_idx].index.tolist()
             idx_drops += drop_idx_list
 
-    df = df[~df.index.isin(idx_drops)]   
+    df = df[~df.index.isin(idx_drops)]
     df = df.set_index('time_points')
     df = df.drop(labels=[method], axis=1)
-    
+
     return df
 
 
 def relabel_duplicates(dataset):
     '''
     Relabel duplicate gene names by appending "dupN" to each duplicate name where N is an integer.
-    
+
     Parameters
     ----------
     dataset : pandas.DataFrame
@@ -216,10 +216,10 @@ def relabel_duplicates(dataset):
     --------
     >>> relabel_duplicates(data_df)
     '''
-    
+
     df = dataset.copy()
     new_index = list()
-    
+
     for genename, expression in df.groupby('time_points'):
         if expression.shape[0] > 1:
             index_list = expression.index.tolist()
@@ -227,9 +227,9 @@ def relabel_duplicates(dataset):
         else:
             new_index.append(genename)
 
-    df.index = new_index  
+    df.index = new_index
     df.index.name = 'time_points'
-    
+
     return df
 
 
@@ -251,7 +251,7 @@ def uniques(lst1, lst2, intersection):
 def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes):
     '''
     Return gene list consisting of top n genes based off of the periodicity inputs and a specified number of genes.
-    
+
     Parameters
     ----------
     periodicity_result : pandas.DataFrame or string
@@ -275,7 +275,7 @@ def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene
     >>> get_genelist_from_top_n_genes('yeast_ma_test__20211005135303_pyjtk_p75-100s5.tsv', 'p-value', 10)
 
     '''
-    
+
     if type(periodicity_result) == str:
         print('Loading periodicity results')
         periodicity_df = load_results(periodicity_result)
@@ -288,7 +288,7 @@ def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene
     else:
         print('filtering column must be a numeric column in the periodicity result dataframe.')
         return None
-    
+
 
 def get_genelist_from_threshold(periodicity_result, filtering_column, threshold, threshold_below=True):
     '''
@@ -318,13 +318,13 @@ def get_genelist_from_threshold(periodicity_result, filtering_column, threshold,
     # supplying a pyJTK results filename and filtering on p-value
     >>> get_genelist_from_top_n_genes('yeast_ma_test__20211005135303_pyjtk_p75-100s5.tsv', 'p-value', 0.02)
     '''
-        
+
     if type(periodicity_result) == str:
         print('Loading periodicity results')
         periodicity_df = load_results(periodicity_result)
     elif type(periodicity_result)==pd.core.frame.DataFrame:
         periodicity_df = periodicity_result
-    
+
     if threshold_below:
         gene_list = list(periodicity_df.loc[periodicity_df[filtering_column]<threshold].index)
     else:
@@ -349,7 +349,7 @@ def closest_column(list_columns, n):
         the number in list_columns which n is closest to
 
     '''
-      
+
     return list_columns[min(range(len(list_columns)), key = lambda i: abs(list_columns[i]-n))]
 
 
@@ -390,7 +390,7 @@ def normalize_data(dataset):
 
 ############ Vizualization Functions ############
 
-# For normalizing data and getting Haase Lab coloring in heatmaps 
+# For normalizing data and getting Haase Lab coloring in heatmaps
 norm = matplotlib.colors.Normalize(-1.5,1.5)
 colors = [[norm(-1.5), "cyan"],
       [norm(0), "black"],
@@ -402,7 +402,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     '''
     Plot genes from a single dataset in a heatmap ordered by peak gene expression during first period. Genes included will depend on the top_genes or threshold values. Top_genes defaults to 1000, so by default the top 1000 genes based off the
     supplied periodicity result will be plotted.
-    
+
     Parameters
     ----------
     dataset : pandas.DataFrame
@@ -434,7 +434,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     >>> plot_heatmap(data_df, pyjtk_results_df, 96, 'p-value', top_genes=None, threshold=0.01)
 
     '''
-    
+
     if top_genes is not None and threshold is None:
         gene_list = get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes)
     elif top_genes is not None and threshold is not None:
@@ -451,12 +451,12 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
         yticks = False
     else:
         yticks = True
-    
+
     z_pyjtk_df = normalize_data(data)
-    
+
     first_period = get_closest_column_from_period(data, period)
     first_period_index = data.columns.get_loc(str(first_period))
-    
+
     z_pyjtk_1stperiod = z_pyjtk_df.iloc[:, 0:first_period_index]
     max_time = z_pyjtk_1stperiod.idxmax(axis=1)
     z_pyjtk_df["max"] = max_time
@@ -465,14 +465,14 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     z_pyjtk_df = z_pyjtk_df.drop(columns=['max'])
 
     fig = plt.figure(figsize = (8,8))
-    
+
     if top_genes is not None:
         subtitle = "Filtered by " + filtering_column +": top " + str(top_genes) +" genes\n"
     elif threshold is not None:
         subtitle = "Filtered by " + filtering_column +" with threshold = "+ str(threshold) +"\n"
     title = 'Time Series Data'
     plt.title(subtitle, fontsize = 13, y = .96)
-    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
+    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)
     fig.subplots_adjust(top = 0.90)
 
     sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar = True)
@@ -482,7 +482,7 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
 def plot_heatmap_in_supplied_order(dataset, gene_order):
     '''
     Plot genes from a single dataset in a heatmap ordered by the supplied order.
-    
+
     Parameters
     ----------
     dataset : pandas.DataFrame
@@ -500,7 +500,7 @@ def plot_heatmap_in_supplied_order(dataset, gene_order):
     >>> plot_heatmap_in_supplied_order(data_df, ['geneA', 'geneB', 'geneC'])
 
     '''
-            
+
     if len(gene_order)>100:
         yticks = False
     else:
@@ -514,7 +514,7 @@ def plot_heatmap_in_supplied_order(dataset, gene_order):
     subtitle = "Ordered by supplied genelist"
     title = 'Time Series Data'
     plt.title(subtitle, fontsize = 13, y = .995)
-    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)    
+    plt.suptitle(title, fontsize=15, ha='center', x = 0.435, y = .96)
     fig.subplots_adjust(top = 0.90)
 
     sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar= True)
@@ -544,7 +544,7 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False):
     >>> plot_linegraphs_from_gene_list(data_df, ['geneA', 'geneB', 'geneC'])
 
     '''
-    
+
     if norm_data:
         dataset = normalize_data(dataset)
 
@@ -553,7 +553,7 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False):
         num_columns = len(gene_list)
         length_size = 3
         width_size = len(gene_list)*4
-        
+
     elif len(gene_list) > 5 and len(gene_list)<=10:
         num_rows = 2
         num_columns = 5
@@ -561,33 +561,33 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False):
         width_size = 20
     else:
         print("Gene-list must be between 1 and 10 genes in length")
-        
-    
+
+
     fig = plt.figure(figsize = (width_size,length_size))
-    
+
     if len(gene_list) <=5 and len(gene_list)>0:
         top_size = .8
     elif len(gene_list) > 5 and len(gene_list)<=10:
         top_size = 0.9
-    
+
     fig.subplots_adjust(hspace=0.3, wspace=0.3, top = top_size)
-    plt.suptitle('Time Series Data', fontsize=15, y = 0.99)    
+    plt.suptitle('Time Series Data', fontsize=15, y = 0.99)
 
     for i, genename in enumerate(gene_list):
         plt.subplot(num_rows, num_columns, i+1)
         sns.lineplot(x = dataset.columns, y = dataset.loc[genename,:]).set_title(genename)
     plt.show()
-    
+
 
 def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering_column, top_gene_number, norm_data=False):
     '''
     Plots top n genes from a dataset in lineplots. Top genes are determined based off of supplied top gene number and the supplied periodicity results. To
-    
+
     Parameters
     ----------
     dataset_df : pandas.DataFrame
         time series gene expression dataset, where rows are genes and columns are time points
-    periodicity_result : pandas.DataFrame or string 
+    periodicity_result : pandas.DataFrame or string
         output from run_periodicity, run_ls, run_pyjtk, or run_pydl. Can consist of a path to a file or a dataframe.
     filtering_column: string
         name of a column in the periodicity result. For example, for JTK specifying 'p-value' will allow for the top n genes ranked based off of the JTK p-value.
@@ -606,17 +606,17 @@ def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering
     # plot the top 10 genes based on ranking all genes on their pyJTK's p-value
     >>> plot_line_graphs_from_top_periodicity(data_df, pyjtk_results_df, 'p-value', 10)
     '''
-    
+
     if top_gene_number not in list(range(1,11)):
         print("top_gene_number must be between 1 and 10")
     else:
-        
+
         if type(periodicity_result) == str:
             print('Loading periodicity results')
             periodicity_df = load_results(periodicity_result)
         elif type(periodicity_result)==pd.core.frame.DataFrame:
             periodicity_df = periodicity_result
-        
+
         gene_list = get_genelist_from_top_n_genes(periodicity_df, filtering_column, top_gene_number)
         plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=norm_data)
 
@@ -667,7 +667,7 @@ def df_edges_to_ipycytoscape(lem_edge_list):
         {'selector': 'edge', 'style': {'curve-style': 'bezier'}},
         {'selector': '.rep', 'style': {'target-arrow-color': 'red', 'line-color': 'red', 'target-arrow-shape': 'tee'}},
         {'selector': '.act', 'style': {'target-arrow-color': 'green', 'target-arrow-shape': 'triangle', 'line-color': 'green'}}]
-    
+
     return cyto_elements, cyto_styles
 
 
@@ -740,15 +740,15 @@ def make_top_edge_network(lem_all_scores_df, top_n_edges, score='pld'):
 def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_results=True, is_tmp=False):
     '''
     Use pyJTK to analyze a time series dataset.
-    
+
     Parameters
     ----------
     dataset : pandas.DataFrame
         time series gene expression dataset, where rows are genes and columns are time points
     min_period : integer
-        the minimum periods to examine
+        the minimum period to examine
     max_period : integer
-        the maximum periods to examine
+        the maximum period to examine
     period_step : integer
         the stepsize for building the range of periods to examine
     filename : string
@@ -775,15 +775,15 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
     # only save the results to a file and return the file name
     >>> run_pyjtk(data_df, 75, 100, 5, 96, 'yeast_ma', return_results=False)
     '''
-    
+
     datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    
+
     periods = np.arange(min_period, max_period+period_step, period_step).tolist()
     # convert periods to string
     periods = convert_periods_to_str(periods)
 
     pyjtk_path = '../src/pyjtk/pyjtk.py'
-    
+
     if is_tmp:
         data_path = filename
         filename = ntpath.basename(data_path).split('__')[0]
@@ -791,20 +791,20 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
         datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         data_path = f'../tmp/{filename}__{datetimestr}.tsv'
         dataset.to_csv(data_path, sep='\t')
-    
+
     outfile = f'{filename}__{datetimestr}_pyjtk_p{min_period}-{max_period}s{period_step}.tsv'
     outdir = f'../results/{outfile}'
-    
+
     full_cmd = ['python', pyjtk_path, data_path, '-T', periods, '-o', outdir]
-    
+
     print(f'-- Running pyJTK on dataset, testing period(s) of {periods}')
-    
-    submit_cmd = subprocess.Popen(full_cmd, 
-                                  stdout=subprocess.PIPE, 
+
+    submit_cmd = subprocess.Popen(full_cmd,
+                                  stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
-    
+
     print(f'-- Command used: {" ".join(full_cmd)}')
-    
+
     output, error = submit_cmd.communicate()
     str_error = error.decode("utf-8").split('\n')
     str_output = output.decode("utf-8").split('\n')
@@ -813,7 +813,7 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
         [print(e) for e in str_error]
 
     print(f'-- Results saved as {outfile} in the results directory')
-    
+
     if not is_tmp:
         os.remove(data_path)
 
@@ -824,7 +824,7 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
         return outfile
 
 
-def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False):
+def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False):
     '''
     Use pyDL to analyze a time series dataset.
 
@@ -870,16 +870,16 @@ def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_t
     '''
 
     datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-    
+
     # convert periods to string
     if isinstance(period, list):
         print(f'** ERROR: pyDL can only take one period. You set <period> to {period}.\nSelect one, set it for period and run again  **')
         return
     else:
         period = str(period)
-    
+
     pydl_path = '../src/pydl/pydl.py'
-    
+
     if is_tmp:
         data_path = filename
         filename = ntpath.basename(data_path).split('__')[0]
@@ -887,10 +887,10 @@ def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_t
         datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         data_path = f'../tmp/{filename}__{datetimestr}.tsv'
         dataset.to_csv(data_path, sep='\t')
-        
+
     outfile = f'{filename}__{datetimestr}_pydl_p{period}.tsv'
     outdir = f'../results/{outfile}'
-    
+
     system = platform.system()
     if system == 'Windows' and windows_issues:
         print('** IMPORTANT: System was detected as Windows. ** There is currently an issue running pyDL on Windows through the Jupyter notebook. Two commands will be printed below. Go into the terminal and change into the biological_clocks_class folder as described in the README.Then copy and paste the following commands. ')
@@ -905,15 +905,15 @@ def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_t
     else:
         print(f'-- Running pyDL on dataset, testing a period of {period}')
 
-        full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir, 
-                    '-r', str(numb_reg), 
-                    '-p', str(numb_per), 
-                    '-l', str(log_trans), 
-                    '-v', str(verbose)]    
+        full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir,
+                    '-r', str(numb_reg),
+                    '-p', str(numb_per),
+                    '-l', str(log_trans),
+                    '-v', str(verbose)]
         print(f'-- Command used: {" ".join(full_cmd)}')
 
-        submit_cmd = subprocess.Popen(full_cmd, 
-                                      stdout=subprocess.PIPE, 
+        submit_cmd = subprocess.Popen(full_cmd,
+                                      stdout=subprocess.PIPE,
                                       stderr=subprocess.PIPE)
 
 
@@ -927,7 +927,7 @@ def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_t
             [print(e) for e in str_error]
 
         print(f'-- Results saved as {outfile} in the results directory')
-    
+
     if not is_tmp:
         os.remove(data_path)
 
@@ -990,19 +990,19 @@ def run_ls(dataset, min_period, max_period, filename, test_freq=4, unit_type='mi
         datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
         data_path = f'../tmp/{filename}__{datetimestr}.tsv'
         dataset.to_csv(data_path, sep='\t')
-        
+
     outdir = f'../results'
 
     full_cmd = ['python', ls_path, data_path, outdir, str(min_period), str(max_period), str(test_freq), unit_type]
-    
+
     print(f'-- Running Lomb-Scargle on dataset, testing periods {min_period}-{max_period} at a frequency of {test_freq} {unit_type}')
-    
-    submit_cmd = subprocess.Popen(full_cmd, 
-                                  stdout=subprocess.PIPE, 
+
+    submit_cmd = subprocess.Popen(full_cmd,
+                                  stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
-    
+
     print(f'-- Command used: {" ".join(full_cmd)}')
-    
+
     output, error = submit_cmd.communicate()
     str_error = error.decode("utf-8").split('\n')
     str_output = output.decode("utf-8").split('\n')
@@ -1012,7 +1012,7 @@ def run_ls(dataset, min_period, max_period, filename, test_freq=4, unit_type='mi
 
     ls_outdir = f'{filename}__{datetimestr}_ls_p{min_period}-{max_period}f{test_freq}'
     print(f'-- Results saved in {ls_outdir} in the results directory')
-    
+
     if not is_tmp:
         os.remove(data_path)
 
@@ -1072,22 +1072,22 @@ def run_periodicity(dataset, min_period, max_period, period_step, avg_period, fi
     >>> run_periodicity(data_df, 75, 100, 5, 95, 'yeast_ma', return_results=False)
 
     '''
-    
+
     print(f'Running periodicity algorithms')
-    
+
     datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     data_path = f'../tmp/{filename}__{datetimestr}.tsv'
     dataset.to_csv(data_path, sep='\t')
-    
+
     print('Running pyJTK')
     pyjtk_results_path = run_pyjtk(data_path, min_period, max_period, period_step, data_path, return_results=False, is_tmp=True)
-    
+
     print('Running pyDL')
     pydl_results_path = run_pydl(data_path, avg_period, data_path, return_results=False, is_tmp=True, windows_issues=windows_issues)
 
     print('Running Lomb-Scargle')
     ls_results_path = run_ls(dataset, min_period, max_period, filename, return_results=False)
-    
+
     system = platform.system()
     if system == 'Windows' and windows_issues:
         pjyk_results = pd.read_csv(pyjtk_results_path, sep='\t', index_col=0, comment='#')
@@ -1121,9 +1121,9 @@ def run_dlxjtk(pyjtk_results, pydl_results, filename, return_results=True):
 
     Parameters
     ----------
-    pyjtk_results : pandas.DataFrame or string 
+    pyjtk_results : pandas.DataFrame or string
         results from running pyJTK on a time series file as pyDL was run on
-    pydl_results : pandas.DataFrame or string 
+    pydl_results : pandas.DataFrame or string
         results from running pyDL on the same time series file as pyJTK was run on
     filename : string
         a name to include in the file name of the results
@@ -1158,7 +1158,7 @@ def run_dlxjtk(pyjtk_results, pydl_results, filename, return_results=True):
         dl_df = load_results(pydl_results)
     elif type(pydl_results)==pd.core.frame.DataFrame:
         dl_df = pydl_results
-    
+
     print('-- Running DLxJTK on pyJTK and pyDL results')
 
     dl_df.rename(columns={'p_reg': 'dl_reg_pval', 'p_reg_norm': 'dl_reg_pval_norm'}, inplace=True)
@@ -1273,7 +1273,7 @@ def run_lem(dataset, target_list, repressor_list, activator_list, filename, num_
     Parameters
     ----------
     dataset : pandas.DataFrame
-        the time series dataset as a dataframe. This dataframe must be the same as was used in the periodicity algorithms. 
+        the time series dataset as a dataframe. This dataframe must be the same as was used in the periodicity algorithms.
     target_list : list
         a list of gene names which LEM will treat as targets
     repressor_list : list
@@ -1286,7 +1286,7 @@ def run_lem(dataset, target_list, repressor_list, activator_list, filename, num_
         tells LEMpy to print out statements from the code. Default: False
     return_results : boolean
         set to True to save the results in a file and to return the results as a dataframe. Set to False to only save the results to a file. Default: True
-    
+
     Returns
     -------
     if return_results == True
@@ -1303,7 +1303,7 @@ def run_lem(dataset, target_list, repressor_list, activator_list, filename, num_
 
     # only save the results to a directory and return the directory name
     >>> run_lem(data_df, ['YHP1', 'YOX1'], ['SWI4'], ['SWI4', 'YHP1', 'YOX1'], 'yeast_ma', return_results=False)
-    
+
     Notes
     -----
     * Gene names must be in the time series dataset.
@@ -1329,13 +1329,13 @@ def run_lem(dataset, target_list, repressor_list, activator_list, filename, num_
 
     lempy_path = '../src/lempy/lempy.py'
     full_cmd = ['mpiexec', '-n', str(num_proc), 'python', lempy_path, full_lem_config.filename]
-    
+
     print(f'-- Running LEMpy on dataset {tmp_data_file}')
 
     submit_cmd = subprocess.Popen(full_cmd,
-                                stdout=subprocess.PIPE, 
+                                stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
-    
+
     print(f'-- Command used: {" ".join(full_cmd)}')
 
     output, error = submit_cmd.communicate()
