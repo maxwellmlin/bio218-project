@@ -11,6 +11,7 @@ Requirements
 * If you do not have `MPI` installed:
     ```
     For MacOS
+    $ brew --version || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     $ brew install openmpi
     $ mpiexec --version
     
