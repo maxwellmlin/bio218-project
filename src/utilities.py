@@ -813,7 +813,7 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
         return outfile
 
 
-def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False, cores=2):
+def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False):
     '''
     Use pyDL to analyze a time series dataset.
 
@@ -839,8 +839,6 @@ def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, 
         this is used in the function run_periodicity and there should be no reason to change this. Default: False
     windows_issues : boolean
         Set to True if you are having trouble running this function on a Windows computer.
-    cores : int
-        the number of CPU cores on which to run the algorithm. Default: 2
 
     Returns
     -------
@@ -896,11 +894,11 @@ def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, 
     else:
         print(f'-- Running pyDL on dataset, testing a period of {period}')
 
-        full_cmd = ['mpiexec', '-n', str(cores), 'python', pydl_path, data_path, '-T', period, '-o', outdir, 
-                    '-r', str(numb_reg), 
-                    '-p', str(numb_per), 
-                    '-l', str(log_trans), 
-                    '-v', str(verbose)]    
+        full_cmd = ['mpiexec', '-n', '2', 'python', pydl_path, data_path, '-T', period, '-o', outdir,
+                    '-r', str(numb_reg),
+                    '-p', str(numb_per),
+                    '-l', str(log_trans),
+                    '-v', str(verbose)]
         print(f'-- Command used: {" ".join(full_cmd)}')
 
         submit_cmd = subprocess.Popen(full_cmd,
@@ -1014,7 +1012,7 @@ def run_ls(dataset, min_period, max_period, filename, test_freq=4, unit_type='mi
         return ls_outdir
 
 
-def run_periodicity(dataset, min_period, max_period, period_step, avg_period, filename, return_results=True, windows_issues=False, cores=2):
+def run_periodicity(dataset, min_period, max_period, period_step, avg_period, filename, return_results=True, windows_issues=False):
     '''
     Run pyJTK, pyDL and Lomb-Scargle on a single dataset.
 
@@ -1036,8 +1034,6 @@ def run_periodicity(dataset, min_period, max_period, period_step, avg_period, fi
         set to True to save the results in a directory and to return the results as a dataframe. Set to False to only save the results to a directory. Default: True
     windows_issues : boolean
         Set to True if you are having trouble running the run_pydl() function on a Windows computer.
-    cores : int
-        the number of CPU cores on which to run the algorithms. Default: 2
 
     Returns
     -------
@@ -1076,7 +1072,7 @@ def run_periodicity(dataset, min_period, max_period, period_step, avg_period, fi
     pyjtk_results_path = run_pyjtk(data_path, min_period, max_period, period_step, data_path, return_results=False, is_tmp=True)
 
     print('Running pyDL')
-    pydl_results_path = run_pydl(data_path, avg_period, data_path, return_results=False, is_tmp=True, windows_issues=windows_issues, cores=cores)
+    pydl_results_path = run_pydl(data_path, avg_period, data_path, return_results=False, is_tmp=True, windows_issues=windows_issues)
 
     print('Running Lomb-Scargle')
     ls_results_path = run_ls(dataset, min_period, max_period, filename, return_results=False)
