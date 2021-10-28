@@ -69,7 +69,7 @@ on all open windows.
     ```
     $ pip install mpi4py
     ```
-
+_________________________
 <br>Opening Jupyter Lab
 ------------
 * Make sure you are in the `biological_clocks_class` folder.
@@ -96,6 +96,8 @@ on all open windows.
 
 * Your new notebook will be named "Untitled.ipynb" so make sure to rename it!
 
+_________________________
+
 <br>Tools
 ------------
 * These are installed during Installation
@@ -113,6 +115,25 @@ on all open windows.
       <tr><td>The Local Edge Machine (LEM)</td><td>A Bayesian network inference method which ranks potential models of gene interactions to identify the most likely regulator(s) and modes of regulation (activation or repression) of a given target gene using time series gene expression data. </td><td><a href="https://pubmed.ncbi.nlm.nih.gov/27760556/">27760556</a></td><td><a href="https://gitlab.com/biochron/lempy">GitLab</a></td></tr>
     </tbody>
 </table>
+<br>
+
+### **Description of periodicity results of interest.**
+
+pyJTK - a single file is returned. 
+
+* period: the period in the range specified by you for which a given gene obtained the best p-value
+* p-value: the p-value associated with the period (periodicity score)
+
+pyDL - a single file is returned
+
+* p_reg_norm: the amplitude score for a given gene
+* p_per_norm: the periodicity score for a given gene
+* dl_score: the dl score (a combination of the amplitude and periodocty score) for a given gene
+
+Lomb-Scarlge (LS) - a directory is returned. The file of interest ends with `_summary.tsv`
+
+* period: the period in the range specified by you for which a given gene obtained the best p-value
+* p-value: the p-value associated with the period (periodicity score)
 
 _________________________
 <br>Datasets
