@@ -9,16 +9,27 @@ Requirements
 
 ### MPI
 * If you do not have `MPI` installed:
+  * For MacOS and in a terminal, enter:
     ```
-    For MacOS
     $ brew --version || /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     $ brew install openmpi
     $ mpiexec --version
-    
-    For Ubuntu
+    ```
+  * For Ubuntu and in a terminal, enter:
+    ```
     $ sudo apt-get install openmpi-bin
     $ mpiexec --version
     ```
+  * For Windows:
+    * first install Microsoft MPI from Here: https://www.microsoft.com/en-us/download/details.aspx?id=54607
+    * Next, add the path `C:\Program Files\Microsoft MPI\bin` to the PATH 
+environment variable. To do so, start typing "env" in the search bar on 
+Windows, choose Edit environment variables. Select the Advanced tab and 
+click on Environment variables. Under User variables, select Path and 
+click the Edit button. Select New and paste the path above, then hit Ok 
+on all open windows.
+
+<!-- The windows structures follow the instructions here: https://urldefense.com/v3/__https://nyu-cds.github.io/python-mpi/setup/__;!!OToaGQ!4UHBCE2f2xWnrMbT1RvtFuLlDLZs9tJptxOQa5OWNNFQkAMrrhDEdqD1FnoCIm_0ja_U$ -->
 
 ### Git
 * [Git](https://www.atlassian.com/git/tutorials/what-is-git) is a version control system and can be installed via conda. In your terminal, enter the command:
@@ -54,6 +65,34 @@ Requirements
   $ conda activate BioClocksClass
   $ ipython kernel install --user --name=BioClocksClass
   ```
+  * **FOR WINDOWS USERS**, after following the above steps, enter this command:
+    ```
+    $ pip install mpi4py
+    ```
+
+<br>Opening Jupyter Lab
+------------
+* Make sure you are in the `biological_clocks_class` folder.
+* Then activate the conda environment for this class if you haven't already. The command is:
+  ```
+  $ conda activate BioClocksClass
+  ```
+* Next, activate Jupyter Lab by entering the following command:
+  ```
+  $ jupyter lab
+  ```
+* A browser should open up or, if you have a browser open already, a new tab should open up.
+
+<br>Creating a new notebook in Jupyter Lab
+------------
+* Make sure you have activated the `BioClocksClass` conda environment and then Jupyter Lab.
+* Navigate to the `notebooks` folder in the `biological_clocks_class` folder within Jupyter Lab. You will find the data_to_network_demo.ipynb file there.
+![gitlab_pref](VM_install_guide/static/notebook_dir.png)
+* Click the "+" (plus sign), which will open a "Launcher" window in Jupyter Lab.
+* Under the "Notebook" section, select the square that says "BioClocksClass". NOTE: if code in this new notebook isn't working, you may need to create a new notebook in the same manner except, under the "Notebook" section, select the square that says "Python [conda env:BioClocksClass]".
+* To use the functions provided, you must enter `%run -i ../src/utilities.py` into a cell and run that cell.
+![gitlab_pref](VM_install_guide/static/utils_run.png)
+* Your new notebook will be named "Untitled.ipynb" so make sure to rename it!
 
 <br>Tools
 ------------

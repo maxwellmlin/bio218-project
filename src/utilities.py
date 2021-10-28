@@ -813,7 +813,7 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
         return outfile
 
 
-def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False, num_proc=2):
+def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False, num_proc=2):
 
     '''
     Use pyDL to analyze a time series dataset.
@@ -1015,7 +1015,7 @@ def run_ls(dataset, min_period, max_period, filename, test_freq=4, unit_type='mi
         return ls_outdir
 
 
-def run_periodicity(dataset, min_period, max_period, period_step, avg_period, filename, return_results=True, windows_issues=False, num_proc=2):
+def run_periodicity(dataset, min_period, max_period, period_step, avg_period, filename, numb_reg=1000000, numb_per=100000, return_results=True, windows_issues=False, num_proc=2):
 
     '''
     Run pyJTK, pyDL and Lomb-Scargle on a single dataset.
@@ -1034,6 +1034,10 @@ def run_periodicity(dataset, min_period, max_period, period_step, avg_period, fi
         the stepsize for building the range of periods to examine in pyJTK and Lomb-Scargle
     filename : string
         a name to include in the file name of the results
+    numb_reg : integer
+        number of random curves for empirical regulation p-value in pyDL. Default: 1000000
+    numb_per : integer
+        number of random curves for empirical periodicity p-value in pyDL. Default: 100000
     return_results : boolean
         set to True to save the results in a directory and to return the results as a dataframe. Set to False to only save the results to a directory. Default: True
     windows_issues : boolean
@@ -1079,7 +1083,7 @@ def run_periodicity(dataset, min_period, max_period, period_step, avg_period, fi
 
     print('Running pyDL')
 
-    pydl_results_path = run_pydl(data_path, avg_period, data_path, return_results=False, is_tmp=True, windows_issues=windows_issues, num_proc=num_proc)
+    pydl_results_path = run_pydl(data_path, avg_period, data_path, numb_reg=numb_reg, numb_per=numb_per, return_results=False, is_tmp=True, windows_issues=windows_issues, num_proc=num_proc)
 
     print('Running Lomb-Scargle')
     ls_results_path = run_ls(dataset, min_period, max_period, filename, return_results=False)
