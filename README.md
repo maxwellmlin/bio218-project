@@ -93,7 +93,7 @@ on all open windows.
 * Click the "+" (plus sign), which will open a "Launcher" window in Jupyter Lab.
 * Under the "Notebook" section, select the square that says "BioClocksClass". NOTE: if code in this new notebook isn't working, you may need to create a new notebook in the same manner except, under the "Notebook" section, select the square that says "Python [conda env:BioClocksClass]".
 * To use the functions provided, you must enter `%run -i ../src/utilities.py` into a cell and run that cell.
-* <img src="VM_install_guide/static/utils_run.png" width="90%">
+* <img src="VM_install_guide/static/utils_run.png" width="70%">
 
 <!-- ![gitlab_pref](VM_install_guide/static/utils_run.png) -->
 * Your new notebook will be named "Untitled.ipynb" so make sure to rename it!
