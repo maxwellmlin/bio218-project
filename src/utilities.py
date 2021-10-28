@@ -521,7 +521,7 @@ def plot_heatmap_in_supplied_order(dataset, gene_order):
     plt.show()
 
 
-def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False):
+def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, graphs_per_row=5):
     '''
     Plots supplied genes in the genelist from a single dataset in lineplots. Can only plot between 1 and 10 genes.
 
@@ -533,6 +533,8 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False):
         a list of gene names to plot. Must be in the dataset index
     norm_data : boolean
         applies z-score normalization to each gene's expression when set to True. Default: False
+    graphs_per_row : int
+        number of graphs to plot in a single row before wrapping around to the next
 
     Returns
     -------
@@ -548,30 +550,17 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False):
     if norm_data:
         dataset = normalize_data(dataset)
 
-    if len(gene_list) <=5 and len(gene_list)>0:
-        num_rows = 1
-        num_columns = len(gene_list)
-        length_size = 3
-        width_size = len(gene_list)*4
+    num_rows = int(np.ceil(len(gene_list) / graphs_per_row))
+    num_columns = np.min((len(gene_list), graphs_per_row))
+    fig_height = 3 * num_rows
+    fig_width = 4 * np.min((len(gene_list), graphs_per_row))
 
-    elif len(gene_list) > 5 and len(gene_list)<=10:
-        num_rows = 2
-        num_columns = 5
-        length_size = 6
-        width_size = 20
-    else:
-        print("Gene-list must be between 1 and 10 genes in length")
+    fig = plt.figure(figsize = (fig_width, fig_height))
+    px_size = fig.get_size_inches() * fig.dpi
+    subplots_margin_top = np.min((0.99, (np.floor((px_size[1] - 40) / px_size[1] * 100) / 100)))
 
-
-    fig = plt.figure(figsize = (width_size,length_size))
-
-    if len(gene_list) <=5 and len(gene_list)>0:
-        top_size = .8
-    elif len(gene_list) > 5 and len(gene_list)<=10:
-        top_size = 0.9
-
-    fig.subplots_adjust(hspace=0.3, wspace=0.3, top = top_size)
-    plt.suptitle('Time Series Data', fontsize=15, y = 0.99)
+    fig.subplots_adjust(hspace=0.3, wspace=0.3, top=subplots_margin_top)
+    plt.suptitle('Time Series Data', fontsize=15, y = 1)
 
     for i, genename in enumerate(gene_list):
         plt.subplot(num_rows, num_columns, i+1)
@@ -825,6 +814,7 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
 
 
 def run_pydl(dataset, period, filename, numb_reg=1, numb_per=1, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False, num_proc=2):
+
     '''
     Use pyDL to analyze a time series dataset.
 
@@ -1026,6 +1016,7 @@ def run_ls(dataset, min_period, max_period, filename, test_freq=4, unit_type='mi
 
 
 def run_periodicity(dataset, min_period, max_period, period_step, avg_period, filename, return_results=True, windows_issues=False, num_proc=2):
+
     '''
     Run pyJTK, pyDL and Lomb-Scargle on a single dataset.
 
@@ -1087,6 +1078,7 @@ def run_periodicity(dataset, min_period, max_period, period_step, avg_period, fi
     pyjtk_results_path = run_pyjtk(data_path, min_period, max_period, period_step, data_path, return_results=False, is_tmp=True)
 
     print('Running pyDL')
+
     pydl_results_path = run_pydl(data_path, avg_period, data_path, return_results=False, is_tmp=True, windows_issues=windows_issues, num_proc=num_proc)
 
     print('Running Lomb-Scargle')
