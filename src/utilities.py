@@ -12,9 +12,43 @@ import ipycytoscape
 import seaborn as sns
 from configobj import ConfigObj
 import matplotlib.pyplot as plt
-
+import requests
+from requests.exceptions import RequestException
 
 DATADIR = '../datasets'
+PLASMODB_RECORD_BASE_URL = 'https://plasmodb.org/plasmo/service/record-types/gene/records'
+PLASMODB_ATTRIBUTES = [
+    "transcript_count",
+    "type_with_pseudo",
+    "gene_type",
+    "genus_species",
+    "is_pseudo",
+    "representative_transcript",
+    "name",
+    "external_db_name",
+    "external_db_version",
+    "source_id",
+    "ds_annotation_version",
+    "chromosome",
+    "location_text",
+    "sequence_id",
+    "strand_plus_minus",
+    "dataset_id",
+    "organism_text",
+    "ec_inferred_description",
+    "show_strains",
+    "strain",
+    "hts_noncoding_snps",
+    "hts_nonsyn_syn_ratio",
+    "hts_nonsynonymous_snps",
+    "hts_stop_codon_snps",
+    "hts_synonymous_snps",
+    "total_hts_snps",
+    "organism_full",
+    "protein_expression_gtracks",
+    "new_gene_name",
+    "new_product_name"
+]
 
 
 ############ Utility Functions ############
@@ -814,7 +848,6 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
 
 
 def run_pydl(dataset, period, filename, numb_reg=1000000, numb_per=100000, log_trans=True, verbose=False, return_results=True, is_tmp=False, windows_issues=False, num_proc=2):
-
     '''
     Use pyDL to analyze a time series dataset.
 
@@ -1376,3 +1409,76 @@ def run_lem(dataset, target_list, repressor_list, activator_list, filename, num_
         else:
             outdir = f'{filename}__{datetimestr}_lempy'
             return outdir
+
+############ PlasmoDB ############
+
+def get_plasmodb_data(genes, attributes):
+    '''
+    Retrieve a specific set of attributes for each gene in a given set of genes from PlasmoDB.
+
+    Parameters
+    ----------
+    genes : list, tuple
+        a list of genes for which to retrieve the passed attributes
+    attributes : list, tuple, str
+        the desired list of attributes to retrieve from PlasmoDB for each of the passed genes, or "all"; PLASMODB_ATTRIBUTES is the list of all valid attributes
+
+    Returns
+    -------
+    A dictionary whose keys are the passed genes and values are the results of querying PlasmoDB for the passed attributes for that gene. Additionally, the key 'failed' returns a list of genes for which there was a problem querying PlasmoDB.
+
+    Examples
+    --------
+    # get the "gene_type" attribute for "PVP01_0000010" and "PVP01_0000020"
+    >>> get_plasmodb_data(["PVP01_0000010", "PVP01_0000020"], ["gene_type"])
+    {'failed': [], 'PVP01_0000010': {'gene_type': 'protein coding gene'}, 'PVP01_0000020': {'gene_type': 'protein coding gene'}}
+    '''
+    if type(genes) is str:
+        raise TypeError("Argument 'genes' must be of type list or tuple, not str")
+    if type(attributes) is str:
+        if attributes.lower() == "all":
+            attributes = PLASMODB_ATTRIBUTES
+        else:
+            attributes = (attributes,)
+    attributes = list(set(attributes))
+    
+    invalid_attributes = []
+    for attribute in attributes:
+        if attribute not in PLASMODB_ATTRIBUTES:
+            invalid_attributes.append(attribute)
+    if len(invalid_attributes) > 0:
+        raise ValueError(f"Invalid PlasmoDB attributes {invalid_attributes} passed")
+    
+    data = {'failed': []}
+    for gene in genes:
+        try:
+            data[gene] = query_plasmodb_gene(gene, attributes)
+        except RequestException:
+            data['failed'].append(gene)
+    return data
+
+# plasmoDB HTTP request helper function
+def query_plasmodb_gene(gene, attributes):
+    request_body_json = {
+        "attributes": attributes,
+        "primaryKey": [
+            {
+                "name":"source_id",
+                "value": gene
+            },
+            {
+                "name":"project_id",
+                "value":"PlasmoDB"
+            }
+        ],
+        "tables": []
+    }
+
+    response = requests.post(PLASMODB_RECORD_BASE_URL, json=request_body_json)
+    try:
+        if response.status_code == 200:
+            return response.json()['attributes']
+        else:
+            raise RequestException()
+    except (KeyError, RequestException) as e:
+        raise RequestException(f"[ERROR] Received HTTP status code {response.status_code} from PlasmoDB for gene '{gene}'")
