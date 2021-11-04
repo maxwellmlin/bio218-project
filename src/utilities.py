@@ -1376,3 +1376,66 @@ def run_lem(dataset, target_list, repressor_list, activator_list, filename, num_
         else:
             outdir = f'{filename}__{datetimestr}_lempy'
             return outdir
+
+
+
+
+## STRIPEYS
+## function to interpolate stripeys
+def interpolate_timepoints(df, timepoints, method_option = "pchip"):
+
+    '''
+    Interpolate specified timepoints from a pandas timeseries DataFrame.
+
+    Parameters
+    ----------
+    dataset : pandas.DataFrame
+        the time series dataset as a dataframe. 
+    timepoints: list
+        the list of the names of the timepoints to be interpolated
+    Returns
+    -------
+    dataset: pandas.DataFrame
+        Time series dataset with interpolated timepoints
+
+    Examples
+    --------
+    # interpolate the timepoints 145, 175, 180
+    >>> interpolate_timepoints(data_df, ["145", "175", "180"])
+    '''
+    df_int = df.copy()
+    for tp in timepoints:
+        df_int[tp] = np.nan
+    columns_in_df  = list(df.columns)
+    df_int.columns = timepoints_numeric = [int(i) for i in columns_in_df]
+    df_interpolated = df_int.interpolate(method=method_option, axis =1)
+    return df_interpolated
+
+#function to quantial normalize pandas df 
+#function from Rob Moseley
+def qn_normalize(df):
+    '''
+    Perform basic quantile normalization on a pandas dataframe
+
+    Parameters
+    ----------
+    dataset : pandas.DataFrame
+        the time series dataset as a dataframe. T
+    Returns
+    -------
+    dataset: pandas.DataFrame
+        quantile normalized time series dataset
+
+    Examples
+    --------
+    # return the QN'd dataset
+    >>> qn_normalize(data_df)
+
+    '''
+    qn_df = pd.DataFrame(columns=df.columns)
+    temp_df = pd.DataFrame(np.tile(df.apply(np.sort, axis=0).mean(axis=1).values, (len(df.columns),1)).transpose(), columns=df.columns)
+    for col in df.columns:
+        qn_df[col] = df[col].replace(to_replace=pd.DataFrame(temp_df[col].values, index=df.apply(np.sort, axis=0)[col]).groupby(col).mean().to_dict()[0])
+
+    return qn_df
+
