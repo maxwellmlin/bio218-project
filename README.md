@@ -22,11 +22,11 @@ Requirements
     ```
   * For Windows:
     * first install Microsoft MPI from Here: https://www.microsoft.com/en-us/download/details.aspx?id=54607
-    * Next, add the path `C:\Program Files\Microsoft MPI\bin` to the PATH 
-environment variable. To do so, start typing "env" in the search bar on 
-Windows, choose Edit environment variables. Select the Advanced tab and 
-click on Environment variables. Under User variables, select Path and 
-click the Edit button. Select New and paste the path above, then hit Ok 
+    * Next, add the path `C:\Program Files\Microsoft MPI\bin` to the PATH
+environment variable. To do so, start typing "env" in the search bar on
+Windows, choose Edit environment variables. Select the Advanced tab and
+click on Environment variables. Under User variables, select Path and
+click the Edit button. Select New and paste the path above, then hit Ok
 on all open windows.
 
 <!-- The windows structures follow the instructions here: https://urldefense.com/v3/__https://nyu-cds.github.io/python-mpi/setup/__;!!OToaGQ!4UHBCE2f2xWnrMbT1RvtFuLlDLZs9tJptxOQa5OWNNFQkAMrrhDEdqD1FnoCIm_0ja_U$ -->
@@ -38,14 +38,14 @@ on all open windows.
   $ conda install git
   ```
 ### Gitlab ([www.gitlab.com](https://www.gitlab.com))
-* You will also need to create a Gitlab account, which you can do [here](https://gitlab.com/users/sign_up). 
+* You will also need to create a Gitlab account, which you can do [here](https://gitlab.com/users/sign_up).
 * You will likely need to create a Personal Access Token (PAT) for use during the Installation step. Follow the steps below to make a Personal Access Token. **IMPORTANT: You will need this token in the Installation instructions below. When you make it, save it some where temporary.**
     * Logged into your GitLab account, click your profile [1] go to `Preferences` [2].
     ![gitlab_pref](VM_install_guide/static/gitlab_pref.png)
     * Go to the `Access Tokens` [1]. Enter `duke-vm` for the Token name [2] and click the box next to `api` [3]. Click `Create personal access token` [4].
     ![gitlab_pat](VM_install_guide/static/git_personal_access_token.png)
     * You will be directed to a new page. Copy the text in the box under `Your new personal access token`. **IMPORTANT: Again, you will need this token in the Installation instructions below. Leave this page open. If you close this page, you will not be able to get your token back. If you do close it, you will need to create a new token again.**
-    * The above will be sufficient for this course, but to learn more on creating a PAT, click [here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html). 
+    * The above will be sufficient for this course, but to learn more on creating a PAT, click [here](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html).
 
 
 <br>Installation
@@ -119,7 +119,7 @@ _________________________
 
 ### **Description of periodicity results of interest.**
 
-pyJTK - a single file is returned. 
+pyJTK - a single file is returned.
 
 * period: the period in the range specified by you for which a given gene obtained the best p-value
 * p-value: the p-value associated with the period (periodicity score)
@@ -178,7 +178,10 @@ Below is a table describing the datasets available within this repository. The l
             <tr><td>Kalanchoe fedtschenkoi</td><td>Circadian</td><td>light-light</td><td>2 hr</td><td>48 hr</td><td>Kfedtschenkoi_LL</td><td>RNAseq</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/29196618/">29196618</a></td></tr>
             <tr><td>Plasmodium falciparum</td><td>Intraerythrocytic Development Cycle</td><td>in vitro 3D7</td><td>3 hr</td><td>60 hr</td><td>Pfalciparum_3D7</td><td>RNAseq</td><td><a href="https://pubmed.ncbi.nlm.nih.gov/32409472/">32409472</a></td></tr>
             <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 08</td><td>3 hr</td><td>48 hr</td><td>Pvivax_08</td><td>RNAseq</td><td>nan</td></tr>
-            <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 09</td><td>3 hr</td><td>48 hr</td><td>Pvivax_09</td><td>RNAseq</td><td>nan</td></tr></tbody>
+            <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 09</td><td>3 hr</td><td>48 hr</td><td>Pvivax_09</td><td>RNAseq</td><td>nan</td></tr>
+            <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 02</td><td>3 hr</td><td>48 hr</td><td>Pvivax_02</td><td>RNAseq</td><td>nan</td></tr>
+            <tr><td>Plasmodium vivax</td><td>Intraerythrocytic Development Cycle</td><td>ex vivo Participant 16</td><td>3 hr</td><td>48 hr</td><td>Pvivax_16</td><td>RNAseq</td><td>nan</td></tr>
+      </tbody>
   </table>
 
 ______________________
