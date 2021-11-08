@@ -1,0 +1,13 @@
+[Unit]
+Description=Jupyter Notebook
+
+[Service]
+Type=simple
+PIDFile=/run/jupyter.pid
+WorkingDirectory=/home/vcm/biological_clocks_class
+ExecStart=/home/vcm/biological_clocks_class/start_jupyter.sh
+User=vcm
+Group=vcm
+
+[Install]
+WantedBy=multi-user.target
