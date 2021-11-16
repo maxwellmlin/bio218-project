@@ -770,8 +770,10 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
     datetimestr = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
 
     periods = np.arange(min_period, max_period+period_step, period_step).tolist()
+    print(periods)
+
     # convert periods to string
-    periods = convert_periods_to_str(periods)
+    str_periods = ', '.join([str(per) for per in periods])
 
     pyjtk_path = '../src/pyjtk/pyjtk.py'
 
@@ -786,7 +788,7 @@ def run_pyjtk(dataset, min_period, max_period, period_step, filename, return_res
     outfile = f'{filename}__{datetimestr}_pyjtk_p{min_period}-{max_period}s{period_step}.tsv'
     outdir = f'../results/{outfile}'
 
-    full_cmd = ['python', pyjtk_path, data_path, '-T', periods, '-o', outdir]
+    full_cmd = ['python', pyjtk_path, data_path, '-T', str_periods, '-o', outdir]
 
     print(f'-- Running pyJTK on dataset, testing period(s) of {periods}')
 
