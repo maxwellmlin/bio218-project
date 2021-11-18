@@ -1,0 +1,10 @@
+# Gene list including wavepool tfs gene IDs
+""
+YIL131C
+YNL068C
+YCR065W
+YDL056W
+YER111C
+YOR083W
+YDR451C
+YML027W

@@ -1,0 +1,7 @@
+# LEMpy target file for C, replicate 0 
+# Run configuration file:  /mnt/c/users/sac97/Desktop/wavepool_LEM/results/edge_finding_20211105095913/lempy_20211105095913_config.txt 
+# Time series data file:   /mnt/c/users/sac97/Desktop/wavepool_LEM/RSEM_TPM_timeseries.tsv 
+# Computed on:  2021-11-05 10:00:43 
+ 
+model	loss	pld	inv_temp	prior	rhs_param_0	rhs_param_1	rhs_param_2	rhs_param_3	rhs_param_4	hess_eigs	hess_det	bnd_params	pld_time	opt_time
+tf_act(B)	125.42347495116086	0.560017	1.0	0.03571428571428571	0.143	0.026	35.68	647.96	4.86	[1, 1, 5.259872515728715, 85.2218489143796, 5067349.337554234]	2271470052.974188	1.0	0.0	0.78125
