@@ -83,6 +83,8 @@ You have three options:
     $ cd biological_clocks_class
     $ conda activate BioClocksClass
     $ jupyter lab --ip=0.0.0.0 --no-browser
+    ```
+    
      ** Note: jupyter notebook and jupyter lab are basically the same thing, just with slightly different UI.
     Then copy and paste the link that it outputs and paste it into your local browser. It should be in the following format:
     http://vcm_number.vm.duke.edu:8888/?token=b510cd19a52da0384048c02ee595a5b1f8755316a363cfc5
@@ -90,7 +92,7 @@ You have three options:
 2. **Running on a Remote Desktop Client**
     If you are running through a remote desktop client, you can install a browser onto your VM following these instructions: https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-ubuntu-20-04/
     Then you can just type the following commands and a browser window with the jupyter lab should open automatically:
-    
+    ```
     $ cd biological_clocks_class
     $ conda activate BioClocksClass
     $ jupyter lab
