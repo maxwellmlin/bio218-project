@@ -37,6 +37,7 @@ ____
         ![putty_gui](static/putty_gui.png)
     * **For Mac or Linux Users**, SSH is preinstalled and can be used from within the Terminal. Open up a terminal and enter `ssh vcm@VM_address`, where *VM_address* is your VM's address. This address can be found on your VM's management page, in the General Information box and next to Hostname, as shown in Step 4's image.
         * After typing in the above command, hit enter. You will be asked a yes/no question, type in `yes` and hit enter.
+    * You can also try connecting via a Remote Desktop Client which will give your VM UI instead of just being able to connect via a terminal.
 ____  
 7) After logging into your VM using SSH, we need to install Anaconda in your VM.  Enter the following commands to do just that:
     ```
@@ -70,7 +71,32 @@ ___
     $ conda activate BioClocksClass
     $ ipython kernel install --user --name=BioClocksClass
     ```
-    Also, set up a password for jupyter lab as follows:
+
+_______
+Accessing Jupyter Lab
+----
+
+You have three options:
+1. **Running From the Terminal** (my favorite option/the easiest)
+    This method is my favorite and is probably the easiest. Once you've ssh'd into your VM, you just type the following commands:
+    ```
+    $ cd biological_clocks_class
+    $ conda activate BioClocksClass
+    $ jupyter lab --ip=0.0.0.0 --no-browser
+     ** Note: jupyter notebook and jupyter lab are basically the same thing, just with slightly different UI.
+    Then copy and paste the link that it outputs and paste it into your local browser. It should be in the following format:
+    http://vcm_number.vm.duke.edu:8888/?token=b510cd19a52da0384048c02ee595a5b1f8755316a363cfc5
+
+2. **Running on a Remote Desktop Client**
+    If you are running through a remote desktop client, you can install a browser onto your VM following these instructions: https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-ubuntu-20-04/
+    Then you can just type the following commands and a browser window with the jupyter lab should open automatically:
+    $ cd biological_clocks_class
+    $ conda activate BioClocksClass
+    $ jupyter lab
+
+3. **Accessing your jupyter sever.** 
+    This method is a bit more complicated, but when it works is really easy for your team to collaborate. If you're a bit more technically minded, you can try to get this set up.
+    Set up a password for jupyter lab as follows:
     1) Run the command below and **enter a password of your choice that all of your team members will share when accessing jupyter lab.**
         ```
         $ jupyter server password
@@ -85,17 +111,13 @@ ___
     $ systemctl status jupyter --no-pager --full
     ```
     **You should see green output at this point:** if you see red output, then do not continue on!
-
-_______
-Accessing Jupyter Lab
-----
-From now on, to access Jupyter Lab...
-1) Ensure that your VM is turned on; if it is not already, then:
-    1) Visit [https://vcm.duke.edu/](https://vcm.duke.edu/)
-    2) Click on the blue "Log In" button
-    3) Click on your VM for this class under "Virtual Machines"
-    4) Click the "Power on" button
-2) Once your VM is on, navigate to `http://yourvmaddress.vm.duke.edu` – or, if you created an alias between Steps 4 and 5, then you can simply navigate to `http://youralias.colab.duke.edu`
+    From now on, to access Jupyter Lab...
+    1) Ensure that your VM is turned on; if it is not already, then:
+        1) Visit [https://vcm.duke.edu/](https://vcm.duke.edu/)
+        2) Click on the blue "Log In" button
+        3) Click on your VM for this class under "Virtual Machines"
+        4) Click the "Power on" button
+    2) Once your VM is on, navigate to `http://yourvmaddress.vm.duke.edu` – or, if you created an alias between Steps 4 and 5, then you can simply navigate to `http://youralias.colab.duke.edu`
 
 ______
 <!-- Moving data between your computer and your VM
