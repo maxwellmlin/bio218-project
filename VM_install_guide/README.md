@@ -90,6 +90,7 @@ You have three options:
 2. **Running on a Remote Desktop Client**
     If you are running through a remote desktop client, you can install a browser onto your VM following these instructions: https://linuxize.com/post/how-to-install-google-chrome-web-browser-on-ubuntu-20-04/
     Then you can just type the following commands and a browser window with the jupyter lab should open automatically:
+    
     $ cd biological_clocks_class
     $ conda activate BioClocksClass
     $ jupyter lab
