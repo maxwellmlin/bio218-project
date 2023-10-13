@@ -65,8 +65,10 @@ ___
 10) Install Biological Clocks Class repository in your VM. Enter the following commands in the terminal:
     ```
     $ cd biological_clocks_class
-    $ git submodule init
+    $ git submodule init    
     $ git submodule update
+    $ conda update conda
+    $ conda config --set channel_priority strict
     $ conda env create -f conda_req.yml
     $ conda activate BioClocksClass
     $ ipython kernel install --user --name=BioClocksClass
