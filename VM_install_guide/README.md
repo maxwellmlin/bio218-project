@@ -30,7 +30,7 @@ ____
 A pop up will appear with the text `Password is: {your password here}`. Save your password somewhere and/or copy it to your clipboard using `Ctrl+C` or `Cmd+C`. You'll need it both for setup and whenever you may need to SSH into your VM.
 ![vm_password_modal](static/VM_Manage_password_modal.png)
 ____
-6) Connect to the VM using SSH.
+6) Connect to the VM using SSH. You need to be on Duke's campus or, if off campus, connect via [VPN](https://oit.duke.edu/service/vpn/). You also need to make sure that the VM is powered on. By default, Duke VMs power off every morning at 6am. You can Power on from Duke's [Virtual Computing Manager](https://vcm.duke.edu/).
     * **For Windows Users**, you will need to download software called Putty. Use this link -[Putty download page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)- to download the 64-bit x86 version by clicking `putty-64bit-0.76-installer.msi`. Install the software.
  ![putty_download](static/putty_download.png)
         * Once Putty is installed, open the software. In the `Hostname` field, enter your VM's address [1]. This address can be found on your VM's management page, in the General Information box and next to Hostname, as shown in Step 4's image. Make sure SSH is selected [2] and then click `open` [3] and then click `Accept`. A new window will open. In this new window, enter `vcm` and hit enter. Next, enter in the username `vcm` and *the password from Step 5* and hit enter. **NOTE: you will not be able to see what you type when entering your password. This is supposed to happen.**
@@ -73,6 +73,11 @@ ___
     $ conda activate BioClocksClass
     $ ipython kernel install --user --name=BioClocksClass
     ```
+Note: If you are running into issues with conda commands, it may be that you need to add a path to Minoconda. In Putty or in the terminal, connect to the VM and run the following command, which opens a text editor for file .bashrc:
+    $vi .bashrc 
+Then add the line of code 
+    $ export PATH=~/miniconda3/bin:$PATH
+somewhere at the top of the file. Save the changes and exit the vi editor by typing :wq. Leave the terminal, start it again and re-connect to the VM. Your conda commands above should now go through. 
 
 _______
 Accessing Jupyter Lab
