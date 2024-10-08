@@ -75,13 +75,13 @@ ___
     ```
 Note: If you are running into issues with conda commands, it may be that you need to add a path to Minoconda. In Putty or in the terminal, connect to the VM and run the following command, which opens a text editor for file .bashrc:
     ```
-    $vi .bashrc 
+    vi .bashrc 
     ```
-Then add the line of code 
+Then type i (for insert) and add the line of code 
     ```
-    $ export PATH=~/miniconda3/bin:$PATH
+    export PATH=~/miniconda3/bin:$PATH
     ```
-somewhere at the top of the file. Save the changes and exit the vi editor by typing :wq. Leave the terminal, start it again and re-connect to the VM. Your conda commands above should now go through. 
+somewhere at the top of the file. Save the changes and exit the vi editor by pressing Escape (for exiting the editing session) and typing :wq (for savig the edits to the file). Leave the terminal, start it again and re-connect to the VM. Your conda commands above should now go through. 
 
 _______
 Accessing Jupyter Lab
