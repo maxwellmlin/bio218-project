@@ -647,6 +647,53 @@ def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering
         plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=norm_data)
 
 
+def plot_periodicity_histogram(periodicity_result, score_column, bins=40, title=None, ax=None):
+    '''
+    Plot the distribution of periodicity scores using a histogram.
+
+    Parameters
+    ----------
+    periodicity_result : pandas.DataFrame or string
+        output from run_periodicity, run_ls, run_pyjtk, or run_pydl. Can be a path to a TSV results file or a dataframe.
+    score_column : string
+        name of the column in the periodicity results to visualize.
+    bins : int, optional
+        number of histogram bins. Default: 40
+    title : string, optional
+        custom plot title. When None, defaults to "Histogram of <score_column>".
+    ax : matplotlib.axes.Axes, optional
+        axes to draw the histogram on. When None, a new figure and axes are created.
+
+    Returns
+    -------
+    matplotlib.axes.Axes
+        axes containing the rendered histogram.
+    '''
+    if isinstance(periodicity_result, pd.DataFrame):
+        results_df = periodicity_result
+    elif isinstance(periodicity_result, str):
+        results_df = load_results(periodicity_result)
+    else:
+        raise TypeError('periodicity_result must be a pandas DataFrame or path/string identifier.')
+
+    if score_column not in results_df.columns:
+        raise ValueError(f'Column "{score_column}" not found in periodicity results.')
+
+    score_series = results_df[score_column].dropna()
+    if score_series.empty:
+        raise ValueError(f'Column "{score_column}" contains only NaN values after filtering.')
+
+    if ax is None:
+        _, ax = plt.subplots(figsize=(6, 4))
+
+    sns.histplot(score_series, bins=bins, ax=ax)
+    ax.set_xlabel(score_column)
+    ax.set_ylabel('Count')
+    ax.set_title(title if title is not None else f'Histogram of {score_column}')
+
+    return ax
+
+
 def df_edges_to_ipycytoscape(lem_edge_list):
     '''
     converts a list of edges in LEM specification into a cytoscape element which can then be used in ipycytoscape for vizualizing a network. Also returns a cytoscape style dictionary.
