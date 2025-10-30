@@ -285,7 +285,7 @@ def uniques(lst1, lst2, intersection):
     return uniq_lst1, uniq_lst2
 
 
-def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes):
+def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_genes, reverse=False):
     '''
     Return gene list consisting of top n genes based off of the periodicity inputs and a specified number of genes.
 
@@ -319,7 +319,7 @@ def get_genelist_from_top_n_genes(periodicity_result, filtering_column, top_gene
     elif type(periodicity_result)==pd.core.frame.DataFrame:
         periodicity_df = periodicity_result
     if filtering_column in periodicity_df.columns:
-        periodicity_df=periodicity_df.sort_values(by=filtering_column)
+        periodicity_df=periodicity_df.sort_values(by=filtering_column, ascending=not reverse)
         gene_list = list(periodicity_df.iloc[0:top_genes].index)
         return gene_list
     else:
@@ -435,7 +435,7 @@ colors = [[norm(-1.5), "cyan"],
 haase = matplotlib.colors.LinearSegmentedColormap.from_list("", colors)
 
 
-def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes=1000, threshold=None, threshold_below=True):
+def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_genes=1000, threshold=None, threshold_below=True, save_path=None):
     '''
     Plot genes from a single dataset in a heatmap ordered by peak gene expression during first period. Genes included will depend on the top_genes or threshold values. Top_genes defaults to 1000, so by default the top 1000 genes based off the
     supplied periodicity result will be plotted.
@@ -513,6 +513,10 @@ def plot_heatmap(dataset, periodicity_result, period, filtering_column, top_gene
     fig.subplots_adjust(top = 0.90)
 
     sns.heatmap(z_pyjtk_df, cmap=haase, vmin=-1.5, vmax=1.5, yticklabels = yticks, cbar = True)
+
+    if save_path is not None:
+        plt.savefig(save_path)
+
     plt.show()
 
 
@@ -558,7 +562,7 @@ def plot_heatmap_in_supplied_order(dataset, gene_order):
     plt.show()
 
 
-def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, graphs_per_row=5):
+def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, graphs_per_row=5, save_path=None):
     '''
     Plots supplied genes in the genelist from a single dataset in lineplots. Can only plot between 1 and 10 genes.
 
@@ -602,6 +606,10 @@ def plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=False, graphs_p
     for i, genename in enumerate(gene_list):
         plt.subplot(num_rows, num_columns, i+1)
         sns.lineplot(x = dataset.columns, y = dataset.loc[genename,:]).set_title(genename)
+
+    if save_path is not None:
+        plt.savefig(save_path)
+
     plt.show()
 
 
@@ -647,7 +655,7 @@ def plot_line_graphs_from_top_periodicity(dataset, periodicity_result, filtering
         plot_linegraphs_from_gene_list(dataset, gene_list, norm_data=norm_data)
 
 
-def plot_periodicity_histogram(periodicity_result, score_column, bins=40, title=None, ax=None):
+def plot_periodicity_histogram(periodicity_result, score_column, bins=40, title=None, ax=None, save_path=None):
     '''
     Plot the distribution of periodicity scores using a histogram.
 
@@ -690,6 +698,9 @@ def plot_periodicity_histogram(periodicity_result, score_column, bins=40, title=
     ax.set_xlabel(score_column)
     ax.set_ylabel('Count')
     ax.set_title(title if title is not None else f'Histogram of {score_column}')
+
+    if save_path is not None:
+        plt.savefig(save_path)
 
     return ax
 
