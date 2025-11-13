@@ -4,12 +4,15 @@ import scipy
 from scipy import stats
 import math
 import ntpath
+from pathlib import Path
 import datetime
 import platform
 import subprocess
+import re
 import matplotlib
 import numpy as np
 import pandas as pd
+from pandas import DataFrame
 import ipycytoscape
 import seaborn as sns
 from configobj import ConfigObj
@@ -133,6 +136,161 @@ def load_results(results_name):
         results_df = pd.read_csv(os.path.join('../results', results_name), index_col=0, sep='\t', comment='#')
 
     return results_df
+
+
+TARGET_FILE_PATTERN = re.compile(r'^target_(.+)_ts\d+\.tsv$')
+MODEL_PATTERN = re.compile(r'^tf_(act|rep)\((.+)\)$')
+NULL_MODEL_NAME = 'null_model'
+
+
+def aggregate_lem_results(lem_results_path: str) -> DataFrame:
+    '''
+    Aggregate per-target LEMpy result files into a single dataframe.
+
+    Parameters
+    ----------
+    lem_results_path : str
+        Path to the top-level LEMpy results directory that contains the `targets` subdirectory.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Combined LEMpy results with parsed regulator information and normalized loss.
+    '''
+
+    def _parse_model(model_name: str):
+        if not isinstance(model_name, str):
+            return (np.nan, np.nan)
+        match = MODEL_PATTERN.match(model_name)
+        if match:
+            regulation_type = 'activator' if match.group(1) == 'act' else 'repressor'
+            return (match.group(2), regulation_type)
+        return (np.nan, np.nan)
+
+    resolved_path = Path(lem_results_path).expanduser()
+    if not resolved_path.is_absolute():
+        resolved_path = (Path.cwd() / resolved_path).resolve()
+    if not resolved_path.is_dir():
+        raise FileNotFoundError(f'LEMpy results path not found: {lem_results_path}')
+
+    targets_root = resolved_path / 'targets'
+    if not targets_root.is_dir():
+        raise FileNotFoundError(f'Expected targets directory at: {targets_root}')
+
+    ts_dirs = sorted(
+        d for d in targets_root.iterdir()
+        if d.is_dir() and d.name.startswith('ts')
+    )
+    if not ts_dirs:
+        raise FileNotFoundError(f'No time-series subdirectories found in {targets_root}')
+
+    aggregated_frames = []
+    for ts_dir in ts_dirs:
+        target_files = sorted(ts_dir.glob('target_*.tsv'))
+        for target_file in target_files:
+            match = TARGET_FILE_PATTERN.match(target_file.name)
+            if not match:
+                raise ValueError(f'Unexpected target filename format: {target_file}')
+            target_name = match.group(1)
+
+            target_df = pd.read_csv(target_file, sep='\t', index_col=0, comment='#')
+            target_df = target_df.rename_axis('model').reset_index()
+            target_df['target'] = target_name
+            target_df['loss'] = pd.to_numeric(target_df['loss'], errors='coerce')
+
+            parsed = target_df['model'].apply(_parse_model)
+            parsed_df = pd.DataFrame(parsed.tolist(), columns=['regulator', 'regulation_type'])
+            target_df[['regulator', 'regulation_type']] = parsed_df
+
+            null_mask = target_df['model'] == NULL_MODEL_NAME
+            if null_mask.any():
+                null_loss = target_df.loc[null_mask, 'loss'].iloc[0]
+                if pd.isna(null_loss) or null_loss == 0:
+                    target_df['norm_loss'] = np.nan
+                else:
+                    target_df['norm_loss'] = target_df['loss'] / null_loss
+            else:
+                target_df['norm_loss'] = np.nan
+
+            target_df = target_df.loc[~null_mask]
+            aggregated_frames.append(target_df)
+
+    if not aggregated_frames:
+        raise FileNotFoundError(f'No target_*.tsv files found in {targets_root}')
+
+    return pd.concat(aggregated_frames, ignore_index=True)
+
+
+def filter_top_regulators_per_target(lem_results: DataFrame, k: int) -> DataFrame:
+    '''
+    Select the top-k regulators per target based on posterior likelihood (pld).
+
+    Parameters
+    ----------
+    lem_results : pandas.DataFrame
+        DataFrame produced by aggregate_lem_results containing LEMpy scores.
+    k : int
+        Number of regulators to keep for each target. Must be >= 1.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Filtered DataFrame with at most k rows per target, ordered by decreasing pld.
+    '''
+
+    if not isinstance(k, int) or k <= 0:
+        raise ValueError('k must be a positive integer')
+
+    required_columns = {'target', 'pld'}
+    missing_columns = required_columns - set(lem_results.columns)
+    if missing_columns:
+        raise KeyError(f'lem_results is missing required columns: {missing_columns}')
+
+    sorted_df = lem_results.sort_values(by=['target', 'pld'], ascending=[True, False])
+    ranked_df = sorted_df.groupby('target', group_keys=False).head(k).copy()
+
+    return ranked_df
+
+
+def make_ranked_network(top_regulators: DataFrame):
+    '''
+    Build an interactive network from the ranked LEM regulators.
+
+    Parameters
+    ----------
+    top_regulators : pandas.DataFrame
+        Output of rank_top_regulator_per_target. Must contain `target`, `regulator`, and `regulation_type`.
+
+    Returns
+    -------
+    ipycytoscape.CytoscapeWidget
+        Interactive network constructed from the ranked edges.
+    '''
+
+    required_columns = {'target', 'regulator', 'regulation_type'}
+    missing_columns = required_columns - set(top_regulators.columns)
+    if missing_columns:
+        raise KeyError(f'top_regulators is missing required columns: {missing_columns}')
+    if top_regulators.empty:
+        raise ValueError('top_regulators dataframe is empty; nothing to plot.')
+
+    type_map = {'activator': 'tf_act', 'repressor': 'tf_rep'}
+
+    lem_edge_list = []
+    for _, row in top_regulators.iterrows():
+        regulation_type = row['regulation_type']
+        if regulation_type not in type_map:
+            raise ValueError(f'Unsupported regulation_type "{regulation_type}" found in row: {row}')
+        target = row['target']
+        regulator = row['regulator']
+        if pd.isna(target) or pd.isna(regulator):
+            continue
+        lem_edge_list.append(f'{target}={type_map[regulation_type]}({regulator})')
+
+    if not lem_edge_list:
+        raise ValueError('No valid regulator-target edges could be constructed.')
+
+    return make_network_from_edge_list(lem_edge_list)
 
 
 def convert_periods_to_str(periods):
