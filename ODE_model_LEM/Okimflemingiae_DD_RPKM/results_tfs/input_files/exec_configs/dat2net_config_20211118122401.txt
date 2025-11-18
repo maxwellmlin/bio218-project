@@ -1,0 +1,19 @@
+data_file = /mnt/c/users/sophi/Desktop/wavepool_LEM/RSEM_TPM_timeseries.tsv,
+annotation_file = /mnt/c/users/sophi/Desktop/wavepool_LEM/annot_tfs_sophie.tsv
+output_dir = /mnt/c/users/sophi/Desktop/wavepool_LEM/results_tfs_sophie
+num_proc = 4
+verbose = True
+
+[lempy_arguments]
+gene_list_file = /mnt/c/users/sophi/Desktop/wavepool_LEM/wavepoool_tf_Sophie.txt
+loss = euc_loss
+
+	[[minimizer_params]]
+	niter = 10
+	T = 1
+	stepsize = .5
+	interval = 10
+	disp = False
+	seed = 0
+
+

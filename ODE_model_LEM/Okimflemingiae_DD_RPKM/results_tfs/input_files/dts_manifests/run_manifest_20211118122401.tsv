@@ -1,0 +1,3 @@
+# Run Manifest for /mnt/c/users/sophi/Desktop/wavepool_LEM/results_tfs_sophie
+run_step	run_input	run_output
+lempy	/mnt/c/users/sophi/Desktop/wavepool_LEM	/mnt/c/users/sophi/Desktop/wavepool_LEM/results_tfs_sophie/edge_finding_20211118122401/summaries
