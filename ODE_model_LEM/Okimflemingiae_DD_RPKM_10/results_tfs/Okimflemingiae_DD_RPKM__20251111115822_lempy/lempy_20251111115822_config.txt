@@ -1,0 +1,42 @@
+output_dir = ../results/Okimflemingiae_DD_RPKM__20251111115822_lempy
+loss = euc_loss
+param_bounds = tf_param_bounds
+prior = uniform_prior
+normalize = True
+inv_temp = 1
+seed = 1762880303
+data_files = ../tmp/tmp_20251111115822.tsv,
+verbose = True
+num_proc = 4
+config_file = ../results/Okimflemingiae_DD_RPKM__20251111115822_lempy/lempy_20251111115822_config.txt
+[minimizer_params]
+    niter = 200
+    T = 1
+    stepsize = 0.5
+    interval = 10
+    disp = False
+    seed = 1762880303
+    accept_test = <function bounded_accept_test at 0x770307c64440>
+    take_step = <utilities.bounded_take_step object at 0x770304b86290>
+[targets]
+    Ophio5|6920 = ""
+    Ophio5|8604 = ""
+    Ophio5|2137 = ""
+    Ophio5|8321 = ""
+    Ophio5|1479 = ""
+    Ophio5|3760 = ""
+    Ophio5|491 = ""
+    Ophio5|1654 = ""
+    Ophio5|392 = ""
+    Ophio5|2237 = ""
+[regulators]
+    Ophio5|1479 = tf_rep, tf_act
+    Ophio5|6920 = tf_rep, tf_act
+    Ophio5|2237 = tf_rep, tf_act
+    Ophio5|8321 = tf_rep, tf_act
+    Ophio5|8604 = tf_rep, tf_act
+    Ophio5|392 = tf_rep, tf_act
+    Ophio5|3760 = tf_rep, tf_act
+    Ophio5|1654 = tf_rep, tf_act
+    Ophio5|2137 = tf_rep, tf_act
+    Ophio5|491 = tf_rep, tf_act
